@@ -1,0 +1,37 @@
+"use client";
+
+import Start from "./Start/page";
+import Component from "./About/page";
+import ProjectsPage from "./Projects/page";
+import ContactPage from "./Contact/page";
+
+
+import Navbar from "../myComponents/Navbar";
+import Header from "../myComponents/Header";
+import Footer from "../myComponents/Footer";
+
+export default function Home() {
+  return (
+
+      <div className="font-sans  flex flex-col bg-cover bg-center">
+        <main className="flex-grow flex flex-col justify-center items-center bg-opacity-90">
+          {/* <Navbar/> */}
+          
+          <section id="home" className="w-full">
+            <Start />
+          </section>
+          <section id="about" className="w-full">
+            <Component />
+          </section>
+          <section id="projects" className="w-full">
+            <ProjectsPage />
+          </section>
+          <section id="contact" className="w-full px-4 md:px-8">
+            <ContactPage />
+          </section>
+        </main>
+      </div>
+
+  );
+}
+
