@@ -27,10 +27,11 @@ export async function POST(request) {
       console.log('No existing projects file, starting with an empty array')
     }
 
-    // Add new project with ID
+    // Add new project with ID and display property
     const newProject = {
       id: uuidv4(),
       ...projectData,
+      display: projectData.display ?? true, // Default to true if not provided
     }
     projects.push(newProject)
 
@@ -65,7 +66,11 @@ export async function PUT(request) {
     
     const index = projects.findIndex(project => project.id === id)
     if (index !== -1) {
-      projects[index] = { ...projects[index], ...updatedData }
+      projects[index] = { 
+        ...projects[index], 
+        ...updatedData,
+        display: updatedData.display ?? projects[index].display // Preserve existing value if not provided
+      }
       await fs.writeFile(filePath, JSON.stringify(projects, null, 2))
       return NextResponse.json({ message: 'Project updated successfully', project: projects[index] })
     } else {

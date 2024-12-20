@@ -7,7 +7,8 @@
     "technologies": "react. js, node, express, nextjs",
     "startDate": "2024-12-01",
     "endDate": "2024-12-06",
-    "imageUrl": "/uploads/1734459934136_Firefly Create an boy avatar wearing a blazer and make remaining things according to you in hyper re.jpg"
+    "imageUrl": "/uploads/1734459934136_Firefly Create an boy avatar wearing a blazer and make remaining things according to you in hyper re.jpg",
+    "display": true
   },
   {
     "id": "568b1a8f-311f-4c20-a880-23e26c4379ab",
@@ -17,7 +18,8 @@
     "technologies": "react. js, node, express, nextjs",
     "startDate": "2024-12-01",
     "endDate": "2024-12-27",
-    "imageUrl": "/uploads/1734462242545_10-profile-picture-ideas-to-make-you-stand-out.jpg"
+    "imageUrl": "/uploads/1734462242545_10-profile-picture-ideas-to-make-you-stand-out.jpg",
+    "display": true
   },
   {
     "id": "e7eafaba-39d1-4ba1-b365-2d9ddb978ed5",
@@ -27,6 +29,18 @@
     "technologies": "react. js, node, express, nextjs",
     "startDate": "2024-12-02",
     "endDate": "2024-12-28",
-    "imageUrl": "/uploads/1734514796505_peakpx.jpg"
+    "imageUrl": "/uploads/1734514796505_peakpx.jpg",
+    "display": true
+  },
+  {
+    "id": "41705661-4ada-4675-9159-c76d2b29c1b8",
+    "title": "Website Backend",
+    "description": "BAss banadiya teko kyu batau",
+    "githubLink": "https://www.github.com/spherein",
+    "technologies": "react. js, node, express, nextjs",
+    "startDate": "2024-12-01",
+    "endDate": "2024-12-27",
+    "imageUrl": "/uploads/1734622025384_Screenshot 2024-12-17 163132.png",
+    "display": false
   }
 ]

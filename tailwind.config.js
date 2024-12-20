@@ -8,6 +8,10 @@ module.exports = {
   ],
   theme: {
   	extend: {
+		fontSize: {
+			'10xl': '10rem',
+			'12xl': '12rem',
+		  },
 		keyframes: {
 			scroll: {
 			  '0%': { transform: 'translateX(0)' },

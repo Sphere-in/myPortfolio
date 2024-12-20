@@ -218,8 +218,8 @@ const ContactInfo = dynamic(() => import('./ContactInfo'), {
 
 export default function ContactPage() {
   return (
-    <div className="min-h-screen w-full bg-gradient-to-br from-gray-900 to-black p-4 sm:p-8">
-      <div className="container mx-auto flex flex-col lg:flex-row justify-center items-start gap-8 lg:gap-12 mt-28">
+    <div className="min-h-screen w-full bg-gradient-to-br from-gray-900 to-black p-4 sm:p-8 ">
+      <div className="container  mx-auto flex flex-col lg:flex-row justify-center items-start gap-8 lg:gap-12 mt-10">
         <Suspense fallback={<Skeleton className="w-full lg:w-2/5 h-[400px] bg-slate-900" />}>
           <ContactForm />
         </Suspense>

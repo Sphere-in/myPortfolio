@@ -26,7 +26,7 @@ export default function Home() {
           <section id="projects" className="w-full">
             <ProjectsPage />
           </section>
-          <section id="contact" className="w-full px-4 md:px-8">
+          <section id="contact" className="w-full ">
             <ContactPage />
           </section>
         </main>

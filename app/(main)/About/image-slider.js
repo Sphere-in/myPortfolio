@@ -31,7 +31,7 @@ const ImageSlider = () => {
 
   return (
     <div className="relative overflow-hidden w-full h-auto mx-auto mt-8">
-      <div className="flex animate-scroll space-x-8 items-center">
+      <div className="flex animate-scroll  space-x-8 items-center">
         {ImageSliderList.map((item, index) => (
           <Image
             key={index}

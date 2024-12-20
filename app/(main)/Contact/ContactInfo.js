@@ -22,14 +22,14 @@ export default function ContactInfo() {
       <h2 className="text-3xl font-bold text-white mb-6">Contact Information</h2>
       <div className="space-y-4 mb-10">
         <div className="flex items-center gap-3">
-          <User className="h-5 w-5 text-primary" />
+          <User className="h-5 w-5 text-gray-200" />
           <span className="text-white">Mohammad Raihan Shaikh</span>
         </div>
         <div
           className="flex items-center gap-3 cursor-pointer group"
           onClick={() => copyToClipboard('shkmraihan@gmail.com')}
         >
-          <Mail className="h-5 w-5 text-primary" />
+          <Mail className="h-5 w-5 text-gray-200" />
           <span className="text-white group-hover:text-primary transition-colors">
             shkmraihan@gmail.com
           </span>

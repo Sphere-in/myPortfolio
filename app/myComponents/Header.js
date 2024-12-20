@@ -37,6 +37,7 @@ export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
   const [activeSection, setActiveSection] = useState('');
+  const [isScrolling, setIsScrolling] = useState(false); // Added state variable
   const pathname = usePathname();
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
@@ -51,6 +52,7 @@ export default function Header() {
   useEffect(() => {
     let lastScrollY = window.pageYOffset;
     let ticking = false;
+    let scrollTimer = null;
 
     const updateActiveSection = () => {
       const sections = ['home', 'about', 'projects', 'contact'];
@@ -75,6 +77,7 @@ export default function Header() {
 
       if (!ticking) {
         window.requestAnimationFrame(() => {
+          setIsScrolling(true);
           setIsVisible(currentScrollY < lastScrollY || currentScrollY < 100);
           updateActiveSection();
           lastScrollY = currentScrollY;
@@ -83,11 +86,27 @@ export default function Header() {
 
         ticking = true;
       }
+
+      // Clear the existing timer
+      if (scrollTimer !== null) {
+        clearTimeout(scrollTimer);
+      }
+
+      // Set a new timer
+      scrollTimer = setTimeout(() => {
+        setIsScrolling(false);
+        setIsVisible(true);
+      }, 150); // Adjust this value to change how quickly the header appears after scrolling stops
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
 
-    return () => window.removeEventListener('scroll', handleScroll);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      if (scrollTimer !== null) {
+        clearTimeout(scrollTimer);
+      }
+    };
   }, []);
 
   const handleNavClick = (e, href) => {
@@ -101,8 +120,8 @@ export default function Header() {
   };
 
   return (
-    <header className={`fixed top-0 left-0 right-0 z-50 transition-transform duration-300 ${isVisible ? 'translate-y-0' : '-translate-y-full'}`}>
-      <div className="bg-black/80 backdrop-blur-sm px-4  md:px-4 md:pt-2 ">
+    <header className={`fixed top-0 left-0 right-0 z-50 transition-transform duration-300 ${isVisible || !isScrolling ? 'translate-y-0' : '-translate-y-full'}`}>
+      <div className="md:bg-black/80 backdrop-blur-sm px-4 md:bg-opacity-85 md:px-4 md:pt-2  ">
         <div className="w-full flex items-center justify-between mb-4 md:mb-6">
 
           {/* LOGO  */}
@@ -122,12 +141,12 @@ export default function Header() {
         <nav
           className={`
             ${isMenuOpen ? 'flex' : 'hidden'}
-            md:flex flex-col md:flex-row absolute md:relative top-full left-0 w-full md:w-auto
+            md:flex flex-col md:flex-row absolute md:relative top-full left-0 w-full md:w-auto md:py-0 py-56
             items-start justify-center space-y-1 md:space-y-0 pl-6 text-xl md:text-1xl font-medium z-10
             bg-black/80 backdrop-blur-sm md:bg-transparent
           `}
         >
-          <ul className="flex flex-col md:flex-row items-start gap-4 md:gap-10 font-roboto group desktop-spacing md:pt-5">
+          <ul className="flex flex-col md:flex-row items-start  gap-4 md:gap-10 font-roboto group desktop-spacing md:pt-5">
             {navItems.map((item) => (
               <NavItem
                 key={item.href}

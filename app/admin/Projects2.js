@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
+import { saveProject, updateProject, deleteProject, getProjects, uploadImage, ensureAuth } from '@/firebase'
 
 export default function Projects() {
   const [projectData, setProjectData] = useState({
@@ -13,64 +14,64 @@ export default function Projects() {
     startDate: '',
     endDate: '',
     imageUrl: '',
+    display: true,
   })
   const [projects, setProjects] = useState([])
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState(null)
   const [editingId, setEditingId] = useState(null)
+  const [uploadProgress, setUploadProgress] = useState(0)
   const router = useRouter()
 
   useEffect(() => {
-    fetchProjects()
+    const initAuth = async () => {
+      try {
+        await ensureAuth();
+        fetchProjects();
+      } catch (error) {
+        console.error('Error initializing auth:', error);
+        setError('Failed to authenticate. Please try again.');
+      }
+    };
+    initAuth();
   }, [])
 
   const fetchProjects = async () => {
     try {
-      const response = await fetch('/api/projects')
-      if (response.ok) {
-        const data = await response.json()
-        setProjects(data)
-      } else {
-        throw new Error('Failed to fetch projects')
-      }
+      setIsLoading(true);
+      const data = await getProjects()
+      setProjects(data)
     } catch (error) {
       console.error('Error fetching projects:', error)
       setError(error.message)
+    } finally {
+      setIsLoading(false);
     }
   }
 
   const handleChange = (e) => {
-    const { name, value } = e.target
+    const { name, value, type, checked } = e.target
     setProjectData((prevData) => ({
       ...prevData,
-      [name]: value,
+      [name]: type === 'checkbox' ? checked : value,
     }))
   }
 
   const handleImageUpload = async (e) => {
     const file = e.target.files[0]
     if (file) {
-      const formData = new FormData()
-      formData.append('file', file)
-      
       try {
-        const response = await fetch('/api/upload', {
-          method: 'POST',
-          body: formData,
-        })
-        
-        if (response.ok) {
-          const data = await response.json()
-          setProjectData((prevData) => ({
-            ...prevData,
-            imageUrl: data.url,
-          }))
-        } else {
-          throw new Error('Failed to upload image')
-        }
+        setUploadProgress(0)
+        const imageUrl = await uploadImage(file)
+        setProjectData((prevData) => ({
+          ...prevData,
+          imageUrl,
+        }))
+        setUploadProgress(100)
       } catch (error) {
         console.error('Error uploading image:', error)
         setError(error.message)
+        setUploadProgress(0)
       }
     }
   }
@@ -81,33 +82,25 @@ export default function Projects() {
     setError(null)
 
     try {
-      const response = await fetch('/api/projects', {
-        method: editingId ? 'PUT' : 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(editingId ? { id: editingId, ...projectData } : projectData),
-      })
-
-      if (response.ok) {
-        const result = await response.json()
-        alert(result.message)
-        setProjectData({
-          title: '',
-          description: '',
-          githubLink: '',
-          technologies: '',
-          startDate: '',
-          endDate: '',
-          imageUrl: '',
-        })
-        setEditingId(null)
-        fetchProjects()
-        router.refresh()
+      if (editingId) {
+        await updateProject(editingId, projectData)
       } else {
-        const errorData = await response.json()
-        throw new Error(errorData.message || 'Failed to save project')
+        await saveProject(projectData)
       }
+      alert(editingId ? 'Project updated successfully' : 'Project saved successfully')
+      setProjectData({
+        title: '',
+        description: '',
+        githubLink: '',
+        technologies: '',
+        startDate: '',
+        endDate: '',
+        imageUrl: '',
+        display: true,
+      })
+      setEditingId(null)
+      fetchProjects()
+      router.refresh()
     } catch (error) {
       console.error('Error saving project:', error)
       setError(error.message)
@@ -124,20 +117,9 @@ export default function Projects() {
   const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this project?')) {
       try {
-        const response = await fetch('/api/projects', {
-          method: 'DELETE',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ id }),
-        })
-
-        if (response.ok) {
-          alert('Project deleted successfully')
-          fetchProjects()
-        } else {
-          throw new Error('Failed to delete project')
-        }
+        await deleteProject(id)
+        alert('Project deleted successfully')
+        fetchProjects()
       } catch (error) {
         console.error('Error deleting project:', error)
         setError(error.message)
@@ -145,9 +127,13 @@ export default function Projects() {
     }
   }
 
+  if (isLoading) {
+    return <div className="min-h-screen bg-[#002626] flex items-center justify-center text-[#00FFB2]">Loading...</div>
+  }
+
   return (
-    <div className="min-h-screen bg-[#002626] rounded-lg  p-8">
-      <h1 className="text-3xl font-bold mb-6">Project Management</h1>
+    <div className="min-h-screen bg-[#002626] rounded-lg p-8">
+      <h1 className="text-3xl font-bold mb-6 text-[#00FFB2]">Project Management</h1>
       {error && (
         <div className="bg-red-600 text-white p-4 rounded mb-4">
           Error: {error}
@@ -155,7 +141,7 @@ export default function Projects() {
       )}
       <form onSubmit={handleSubmit} className="space-y-4 mb-8">
         <div>
-          <label htmlFor="title" className="block mb-1">
+          <label htmlFor="title" className="block mb-1 text-[#00FFB2]">
             Project Title
           </label>
           <input
@@ -169,7 +155,7 @@ export default function Projects() {
           />
         </div>
         <div>
-          <label htmlFor="description" className="block mb-1">
+          <label htmlFor="description" className="block mb-1 text-[#00FFB2]">
             Project Description
           </label>
           <textarea
@@ -183,7 +169,7 @@ export default function Projects() {
           ></textarea>
         </div>
         <div>
-          <label htmlFor="githubLink" className="block mb-1">
+          <label htmlFor="githubLink" className="block mb-1 text-[#00FFB2]">
             GitHub Link
           </label>
           <input
@@ -197,7 +183,7 @@ export default function Projects() {
           />
         </div>
         <div>
-          <label htmlFor="technologies" className="block mb-1">
+          <label htmlFor="technologies" className="block mb-1 text-[#00FFB2]">
             Technologies Used
           </label>
           <input
@@ -211,7 +197,7 @@ export default function Projects() {
           />
         </div>
         <div>
-          <label htmlFor="startDate" className="block mb-1">
+          <label htmlFor="startDate" className="block mb-1 text-[#00FFB2]">
             Start Date
           </label>
           <input
@@ -225,7 +211,7 @@ export default function Projects() {
           />
         </div>
         <div>
-          <label htmlFor="endDate" className="block mb-1">
+          <label htmlFor="endDate" className="block mb-1 text-[#00FFB2]">
             End Date
           </label>
           <input
@@ -238,7 +224,7 @@ export default function Projects() {
           />
         </div>
         <div>
-          <label htmlFor="image" className="block mb-1">
+          <label htmlFor="image" className="block mb-1 text-[#00FFB2]">
             Project Image
           </label>
           <input
@@ -249,16 +235,37 @@ export default function Projects() {
             accept="image/*"
             className="w-full p-2 rounded bg-[#001a1a] border-[#00FFB2]/20 text-[#00FFB2]"
           />
+          {uploadProgress > 0 && uploadProgress < 100 && (
+            <div className="mt-2 bg-[#001a1a] rounded-full h-2.5">
+              <div
+                className="bg-[#00FFB2] h-2.5 rounded-full"
+                style={{ width: `${uploadProgress}%` }}
+              ></div>
+            </div>
+          )}
         </div>
         {projectData.imageUrl && (
           <div>
             <Image src={projectData.imageUrl} alt="Project Image" width={200} height={200} />
           </div>
         )}
+        <div>
+          <label htmlFor="display" className="block mb-1 text-[#00FFB2]">
+            Display Project
+          </label>
+          <input
+            type="checkbox"
+            id="display"
+            name="display"
+            checked={projectData.display}
+            onChange={handleChange}
+            className="rounded bg-[#001a1a] border-[#00FFB2]/20 text-[#00FFB2]"
+          />
+        </div>
         <button
           type="submit"
           disabled={isLoading}
-          className={`bg-[#00FFB2] text-[#001a1a] hover:bg-[#00FFB2]/90 font-bold py-2 px-4 rounded  ${
+          className={`bg-[#00FFB2] text-[#001a1a] hover:bg-[#00FFB2]/90 font-bold py-2 px-4 rounded ${
             isLoading ? 'opacity-50 cursor-not-allowed' : ''
           }`}
         >
@@ -266,7 +273,7 @@ export default function Projects() {
         </button>
       </form>
 
-      <h2 className="text-2xl font-bold mb-4">Project List</h2>
+      <h2 className="text-2xl font-bold mb-4 text-[#00FFB2]">Project List</h2>
       <div className="space-y-4">
         {projects.map((project) => (
           <div key={project.id} className="bg-[#001a1a] border-[#00FFB2]/20 text-[#00FFB2] p-4 rounded">
@@ -275,13 +282,14 @@ export default function Projects() {
             <p>Technologies: {project.technologies}</p>
             <p>Start Date: {project.startDate}</p>
             <p>End Date: {project.endDate}</p>
+            <p>Display: {project.display ? 'Yes' : 'No'}</p>
             {project.imageUrl && (
               <Image src={project.imageUrl} alt={project.title} width={100} height={100} />
             )}
             <div className="mt-2">
               <button
                 onClick={() => handleEdit(project)}
-                className = "bg-[#00FFB2] text-[#001a1a] hover:bg-[#00FFB2]/90 font-bold py-1 px-2 rounded mr-2"
+                className="bg-[#00FFB2] text-[#001a1a] hover:bg-[#00FFB2]/90 font-bold py-1 px-2 rounded mr-2"
               >
                 Edit
               </button>

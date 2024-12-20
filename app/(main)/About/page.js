@@ -8,7 +8,7 @@ import Skills from "./Skills"
 
 export default function Component() {
   return (
-    <div className="min-h-screen bg-[#0A0A1B] text-white p-6 md:p-12 relative">
+    <div className="min-h-screen  bg-[#091c24]  text-white p-6 md:p-12 relative">
       <div className="max-w-6xl mx-auto pt-16">
         <div className="grid md:grid-cols-2 gap-8 lg:gap-16 items-start relative">
           {/* Social Icons Column */}
