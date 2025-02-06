@@ -36,16 +36,16 @@ export default function Component() {
 
             {/* Social Links */}
             <div className="flex gap-4">
-              <Link href="#" className="text-gray-400 hover:text-white transition-colors">
+              <Link href="https://www.linkedin.com/in/raihan-shk" className="text-gray-400 hover:text-white transition-colors">
                 <Linkedin className="w-6 h-6" />
               </Link>
               <Link href="#" className="text-gray-400 hover:text-white transition-colors">
                 <Instagram className="w-6 h-6" />
               </Link>
-              <Link href="#" className="text-gray-400 hover:text-white transition-colors">
+              <Link href="https://raihan-shk.vercel.app" className="text-gray-400 hover:text-white transition-colors">
                 <Globe className="w-6 h-6" />
               </Link>
-              <Link href="#" className="text-gray-400 hover:text-white transition-colors">
+              <Link href="https://github.com/Sphere-in" className="text-gray-400 hover:text-white transition-colors">
                 <Github className="w-6 h-6" />
               </Link>
             </div>

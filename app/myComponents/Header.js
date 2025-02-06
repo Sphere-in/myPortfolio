@@ -50,7 +50,7 @@ export default function Header() {
   ], []);
 
   useEffect(() => {
-    let lastScrollY = window.pageYOffset;
+    let lastScrollY = window.scrollY;
     let ticking = false;
     let scrollTimer = null;
 

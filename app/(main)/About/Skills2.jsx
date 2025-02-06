@@ -51,17 +51,17 @@ const Sidebar = ({ isOpen, onClose, skill }) => (
           transition={{ type: "tween", duration: 0.3 }}
           className="fixed top-0 right-0 w-full sm:w-[30%] h-full bg-gray-800 z-50 overflow-y-auto"
         >
-          <div className="p-6">
+          <div className="p-4 sm:p-6">
             <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-white">
               <X size={24} />
             </button>
             {skill && (
               <div className="mt-8">
-                <h2 className="text-2xl font-bold text-white mb-4">{skill.name}</h2>
+                <h2 className="text-xl sm:text-2xl font-bold text-white mb-4">{skill.name}</h2>
                 <Badge variant="outline" className="text-emerald-400 border-emerald-400 text-sm mb-4">
                   {skill.level}
                 </Badge>
-                <p className="text-gray-300">{skill.description}</p>
+                <p className="text-sm sm:text-base text-gray-300">{skill.description}</p>
               </div>
             )}
           </div>
@@ -85,32 +85,34 @@ const Skills = () => {
   }
 
   return (
-    <section className="py-8 mt-6 sm:py-12 sm:mt-10">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <h2 className="text-2xl sm:text-3xl font-extrabold text-white mb-6 sm:mb-8">Technical Skills</h2>
-        <HoverEffect
-          items={skills.map((skill) => ({
-            title: skill.name,
-            description: skill.description,
-            level: skill.level,
-          }))}
-          onItemClick={handleSkillClick}
-        />
+    <section className="py-6 sm:py-12">
+      <div className="max-w-6xl mx-auto px-3 sm:px-6 lg:px-8">
+        <h2 className="text-xl sm:text-3xl font-extrabold text-white mb-4 sm:mb-8">Technical Skills</h2>
+        <div className="overflow-hidden">
+          <HoverEffect
+            items={skills.map((skill) => ({
+              title: skill.name,
+              description: skill.description,
+              level: skill.level,
+            }))}
+            onItemClick={handleSkillClick}
+          />
+        </div>
       </div>
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-9">
-        <h2 className="text-xl sm:text-2xl font-extrabold text-white mb-6 sm:mb-8">Soft Skills</h2>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+      <div className="max-w-6xl mx-auto px-3 sm:px-6 lg:px-8 py-6 sm:py-9">
+        <h2 className="text-lg sm:text-2xl font-extrabold text-white mb-4 sm:mb-8">Soft Skills</h2>
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 gap-3 sm:gap-6">
           {softSkills.map((skill, index) => (
             <Card key={index} className="border-primary/20 bg-slate-700">
-              <CardHeader className="p-3 sm:p-4">
-                <CardTitle className="flex items-center space-x-2 text-white text-sm sm:text-base">
-                  <skill.icon className="h-4 w-4 sm:h-6 sm:w-6 text-primary" />
-                  <span>{skill.name}</span>
+              <CardHeader className="p-2 sm:p-4">
+                <CardTitle className="flex items-center gap-2 text-white text-sm sm:text-base">
+                  <skill.icon className="h-4 w-4 sm:h-5 sm:w-5 text-primary flex-shrink-0" />
+                  <span className="truncate">{skill.name}</span>
                 </CardTitle>
               </CardHeader>
-              <CardContent className="p-3 sm:p-4">
-                <p className="text-gray-400 text-xs sm:text-sm">
+              <CardContent className="p-2 sm:p-4">
+                <p className="text-gray-400 text-xs sm:text-sm line-clamp-2">
                   Proficient in {skill.name.toLowerCase()}, enhancing overall professional effectiveness.
                 </p>
               </CardContent>
@@ -125,4 +127,3 @@ const Skills = () => {
 }
 
 export default Skills
-

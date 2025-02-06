@@ -1,10 +1,9 @@
-"use client"
-
 import { cn } from "@/lib/utils"
 import { AnimatePresence, motion } from "framer-motion"
 import { useState } from "react"
 import { Badge } from "@/components/ui/badge"
 import React from "react"
+
 export const HoverEffect = ({
   items,
   className,
@@ -13,7 +12,10 @@ export const HoverEffect = ({
   const [hoveredIndex, setHoveredIndex] = useState(null)
 
   return (
-    <div className={cn("grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 p-4", className)}>
+    <div className={cn(
+      "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-3 p-2 sm:p-4 w-full max-w-7xl mx-auto",
+      className
+    )}>
       {items.map((item, idx) => (
         <motion.div
           key={item.title}
@@ -28,24 +30,23 @@ export const HoverEffect = ({
           <AnimatePresence>
             {hoveredIndex === idx && (
               <motion.span
-              className="absolute inset-0 h-full w-full bg-neutral-200 dark:bg-slate-800/[0.8] block  rounded-lg "
-              layoutId="hoverBackground"
-              initial={{ opacity: 0.8, scale: 0.95 }}
-              animate={{
-                opacity: 1,
-                scale: 1,
-                transition: { duration: 1.2, ease: "easeInOut" },
-              }}
-              exit={{
-                opacity: 0,
-                scale: 0.95,
-                transition: { duration: 0.4, ease: "easeInOut", delay: 0.2 },
-              }}
-            />
-            
+                className="absolute inset-0 h-full w-full bg-neutral-200 dark:bg-slate-800/[0.8] block rounded-lg"
+                layoutId="hoverBackground"
+                initial={{ opacity: 0.8, scale: 0.95 }}
+                animate={{
+                  opacity: 1,
+                  scale: 1,
+                  transition: { duration: 0.8, ease: "easeInOut" },
+                }}
+                exit={{
+                  opacity: 0,
+                  scale: 0.95,
+                  transition: { duration: 0.3, ease: "easeInOut" },
+                }}
+              />
             )}
           </AnimatePresence>
-          <Card className={` `}>
+          <Card>
             <CardTitle>{item.title}</CardTitle>
             <CardDescription>{item.description}</CardDescription>
             <CardBadge>{item.level}</CardBadge>
@@ -63,9 +64,10 @@ export const Card = ({
   return (
     <motion.div
       className={cn(
-        "rounded-lg p-4 bg-card text-card-foreground shadow-lg relative z-20 overflow-hidden",
+        "rounded-lg p-3 sm:p-4 bg-card text-card-foreground shadow-lg relative z-20",
         "transition-all duration-300 ease-in-out",
-        "hover:shadow-xl hover:-translate-y-1 bg-black cursor-default h-40 md:36 m-2 w-",
+        "hover:shadow-xl hover:-translate-y-1 bg-black cursor-pointer",
+        "h-32 sm:h-36 md:h-40 w-full",
         className,
       )}
       whileHover={{ scale: 1.02 }}
@@ -83,9 +85,7 @@ export const CardTitle = ({
   return (
     <h3
       className={cn(
-        "text-lg font-semibold text-white mb-2",
-        "transition-colors duration-300 ease-in-out",
-        // "group-hover:text-primary",
+        "text-base sm:text-lg font-semibold text-white mb-1 sm:mb-2 line-clamp-2",
         className,
       )}
     >
@@ -101,7 +101,7 @@ export const CardDescription = ({
   return (
     <p
       className={cn(
-        "text-sm text-slate-500 mt-2",
+        "text-xs sm:text-sm text-slate-500 line-clamp-2 sm:line-clamp-3",
         "transition-colors duration-300 ease-in-out",
         "group-hover:text-slate-300",
         className,
@@ -120,7 +120,7 @@ export const CardBadge = ({
     <Badge
       variant="outline"
       className={cn(
-        "text-xs mt-3 bg-white backdrop-blur-sm",
+        "text-xs mt-2 sm:mt-3 bg-white/90 backdrop-blur-sm",
         "transition-all duration-300 ease-in-out",
         "group-hover:bg-black group-hover:text-white",
         className,
@@ -131,3 +131,4 @@ export const CardBadge = ({
   )
 }
 
+export default HoverEffect;

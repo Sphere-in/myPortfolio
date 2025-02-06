@@ -49,7 +49,7 @@ export default function Navbar() {
   ], []);
 
   useEffect(() => {
-    let lastScrollY = window.pageYOffset;
+    let lastScrollY = window.scrollY;
     let ticking = false;
 
     const updateHeaderVisibility = () => {
