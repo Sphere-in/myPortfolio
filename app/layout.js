@@ -23,16 +23,16 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased text-white  h-screen m-0 p-0 `}
-        style={{
-          backgroundImage: "url('/back2.png')",
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat',
-          backgroundAttachment: 'fixed', // This ensures the background stays fixed when scrolling
-          minHeight: '100vh',
-          width: '100%',
-        }}
+        className={`${geistSans.variable} ${geistMono.variable}  text-white  h-screen m-0 p-0 bg-black`}
+        // style={{
+        //   backgroundImage: "url('/back2.png')",
+        //   backgroundSize: 'cover',
+        //   backgroundPosition: 'center',
+        //   backgroundRepeat: 'no-repeat',
+        //   backgroundAttachment: 'fixed', // This ensures the background stays fixed when scrolling
+        //   minHeight: '100vh',
+        //   width: '100%',
+        // }}
       >
    
         <AuthProvider>{children}</AuthProvider>

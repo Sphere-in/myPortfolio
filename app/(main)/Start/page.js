@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
+import { EvervaultCard, Icon } from '@/components/ui/enervault-card'
 
 const Start = () => {
   const [hoveredIndex, setHoveredIndex] = useState(null)
@@ -8,7 +9,14 @@ const Start = () => {
   const lastName = "SHAIKH"
 
   return (
-    <div className='flex flex-col justify-center items-center p-4 text-center min-h-screen'>
+    <div className='relative flex flex-col justify-center items-center p-4 text-center min-h-screen'>
+       <div className="pointer-events-none fixed inset-0">
+        <div className=" inset-0 bg-gradient-to-b from-background via-background/90 to-background" />
+        <div className=" right-0 top-0 h-[500px] w-[500px] bg-blue-500/10 blur-[100px]" />
+        <div className=" bottom-0 left-0 h-[500px] w-[500px] bg-purple-500/10 blur-[100px]" />
+      </div>
+      
+
       <h1 className='flex flex-col sm:flex-row gap-x-8 justify-center text-7xl sm:text-8xl md:text-8xl lg:text-8xl xl:text-10xl font-bold font-mono mb-4 tracking-tight cursor-default'>
         {[firstName, lastName].map((word, wordIndex) => (
           <div key={wordIndex} className="flex">

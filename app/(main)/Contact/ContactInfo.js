@@ -30,7 +30,7 @@ export default function ContactInfo() {
           onClick={() => copyToClipboard('shkmraihan@gmail.com')}
         >
           <Mail className="h-5 w-5 text-gray-200" />
-          <span className="text-white group-hover:text-primary transition-colors">
+          <span className="text-white group-hover:text-green-400 transition-colors">
             shkmraihan@gmail.com
           </span>
           <div className="relative">

@@ -1,19 +1,14 @@
 'use client'
 
-
-
-
-
 import { useState } from 'react'
 import { Button } from "@/components/ui/button"
 import { useAuth } from '../contexts/AuthContexts'
 import SubmissionsPage from './SubmissionsPage'
 import AboutUsPage from './AboutUsPage'
-import Projects from './Projects2'
-import ProjectList from './ProjectList'
+import Projects from './Projects'
 
 
-const  AdminPage = ()=> {
+const AdminPage = () => {
   const { isAuthenticated, login, logout } = useAuth()
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
@@ -57,26 +52,21 @@ const  AdminPage = ()=> {
         <nav className="space-y-2 flex flex-col">
           <Button
             onClick={() => setActivePage('submissions')}
-            className={`w-full justify-start ${activePage === 'submissions' ? 'bg-[#00FFB2] text-[#001a1a]' : 'bg-[#002626] text-[#00FFB2]'}`}
+            className={`w-full justify-start ${activePage === 'submissions' ? 'bg-[#00FFB2] text-[#001a1a] hover:text-[#00FFB2]' : 'bg-[#002626] text-[#00FFB2]'}`}
           >
             Submissions
           </Button>
-          
+
           <Button
             onClick={() => setActivePage('projects')}
-            className={`w-full justify-start ${activePage === 'projects' ? 'bg-[#00FFB2] text-[#001a1a]' : 'bg-[#002626] text-[#00FFB2]'}`}
+            className={`w-full justify-start ${activePage === 'projects' ? 'bg-[#00FFB2] text-[#001a1a] hover:text-[#00FFB2]'  : 'bg-[#002626] text-[#00FFB2]'}`}
           >
             Edit Projects
           </Button>
-          <Button
-            onClick={() => setActivePage('projectslist')}
-            className={`w-full justify-start ${activePage === 'projectslist' ? 'bg-[#00FFB2] text-[#001a1a]' : 'bg-[#002626] text-[#00FFB2]'}`}
-          >
-            Project List
-          </Button>
+
           <Button
             onClick={() => setActivePage('about')}
-            className={`w-full justify-start ${activePage === 'about' ? 'bg-[#00FFB2] text-[#001a1a]' : 'bg-[#002626] text-[#00FFB2]'}`}
+            className={`w-full justify-start ${activePage === 'about' ? 'bg-[#00FFB2] text-[#001a1a] hover:text-[#00FFB2]' : 'bg-[#002626] text-[#00FFB2]'}`}
           >
             Edit About Us
           </Button>
@@ -87,9 +77,7 @@ const  AdminPage = ()=> {
       </div>
       <div className="flex-1 p-6 overflow-auto">
         {activePage === 'submissions' && <SubmissionsPage />}
-        {/* {activePage === 'projects' && <ProjectsPage />} */}
         {activePage === 'projects' && <Projects />}
-        {activePage === 'projectslist' && <ProjectList/>}
         {activePage === 'about' && <AboutUsPage />}
       </div>
     </div>

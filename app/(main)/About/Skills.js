@@ -1,10 +1,8 @@
-'use client'
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Brain, Users, Lightbulb, MessageCircle, Target, Puzzle } from 'lucide-react'
-import { useState } from 'react'
-import { Badge } from "@/components/ui/badge"
-import { motion, AnimatePresence, LayoutGroup } from "framer-motion"
-
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Brain, Users, Lightbulb, MessageCircle, Target, Puzzle, X } from 'lucide-react';
 
 const softSkills = [
     { name: "Critical Thinking", icon: Brain },
@@ -13,7 +11,8 @@ const softSkills = [
     { name: "Communication", icon: MessageCircle },
     { name: "Problem Solving", icon: Puzzle },
     { name: "Adaptability", icon: Target },
-]
+];
+
 const skills = [
     { name: "Next.js", level: "Advanced", description: "Server-side rendering, routing, and API routes" },
     { name: "React", level: "Advanced", description: "Component-based UI development with hooks and context" },
@@ -26,10 +25,62 @@ const skills = [
     { name: "Jenkins", level: "Intermediate", description: "CI/CD pipelines and build automation" },
     { name: "Ansible", level: "Intermediate", description: "Infrastructure as code and configuration management" },
     { name: "Shell Scripting", level: "Intermediate", description: "Bash scripting for automation and system administration" },
-]
+];
 
-export default function Skills() {
-    const [expandedSkill, setExpandedSkill] = useState(null)
+const Sidebar = ({ isOpen, onClose, skill }) => (
+    <AnimatePresence>
+        {isOpen && (
+            <>
+                <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.3 }}
+                    className="fixed inset-0 bg-black bg-opacity-50 z-40"
+                    onClick={onClose}
+                />
+                <motion.div
+                    initial={{ x: '100%' }}
+                    animate={{ x: 0 }}
+                    exit={{ x: '100%' }}
+                    transition={{ type: 'tween', duration: 0.3 }}
+                    className="fixed top-0 right-0 w-full sm:w-[30%] h-full bg-gray-800 z-50 overflow-y-auto"
+                >
+                    <div className="p-6">
+                        <button
+                            onClick={onClose}
+                            className="absolute top-4 right-4 text-gray-400 hover:text-white"
+                        >
+                            <X size={24} />
+                        </button>
+                        {skill && (
+                            <div className="mt-8">
+                                <h2 className="text-2xl font-bold text-white mb-4">{skill.name}</h2>
+                                <Badge variant="outline" className="text-emerald-400 border-emerald-400 text-sm mb-4">
+                                    {skill.level}
+                                </Badge>
+                                <p className="text-gray-300">{skill.description}</p>
+                            </div>
+                        )}
+                    </div>
+                </motion.div>
+            </>
+        )}
+    </AnimatePresence>
+);
+
+const Skills = () => {
+    const [selectedSkill, setSelectedSkill] = useState(null);
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+    const handleSkillClick = (skill) => {
+        setSelectedSkill(skill);
+        setIsSidebarOpen(true);
+    };
+
+    const closeSidebar = () => {
+        setIsSidebarOpen(false);
+    };
 
     return (
         <section className="py-8 mt-6 sm:py-12 sm:mt-10">
@@ -41,7 +92,7 @@ export default function Skills() {
                             key={skill.name}
                             className="bg-gray-800 rounded-lg p-3 sm:p-4 cursor-pointer"
                             whileHover={{ scale: 1.03 }}
-                            onClick={() => setExpandedSkill(expandedSkill === skill.name ? null : skill.name)}
+                            onClick={() => handleSkillClick(skill)}
                         >
                             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-2">
                                 <h3 className="text-base sm:text-lg font-medium text-white mb-1 sm:mb-0">{skill.name}</h3>
@@ -49,22 +100,11 @@ export default function Skills() {
                                     {skill.level}
                                 </Badge>
                             </div>
-
-                            <motion.div
-                                initial={{ height: 0, opacity: 0 }}
-                                animate={{
-                                    height: expandedSkill === skill.name ? "auto" : 0,
-                                    opacity: expandedSkill === skill.name ? 1 : 0,
-                                }}
-                                transition={{ duration: 0.3 }}
-                                className="overflow-hidden"
-                            >
-                                <p className="text-gray-400 mt-2 text-sm sm:text-base">{skill.description}</p>
-                            </motion.div>
                         </motion.div>
                     ))}
                 </div>
             </div>
+
             <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-9">
                 <h2 className="text-xl sm:text-2xl font-extrabold text-white mb-6 sm:mb-8">Soft Skills</h2>
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
@@ -85,6 +125,15 @@ export default function Skills() {
                     ))}
                 </div>
             </div>
+
+            <Sidebar
+                isOpen={isSidebarOpen}
+                onClose={closeSidebar}
+                skill={selectedSkill}
+            />
         </section>
-    )
-}
+    );
+};
+
+export default Skills;
+

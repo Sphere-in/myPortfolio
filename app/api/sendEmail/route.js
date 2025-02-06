@@ -52,7 +52,7 @@ export async function POST(req) {
       from: process.env.EMAIL_USER,
       to: to || process.env.EMAIL_USER, // Send to the specified recipient or default to admin email
       subject: subject || "No Subject",
-      text: `Message from ${name} (${email}):\n\n${message}`,
+      text: `Message from ${name} (${email || "shkmraihan@gmail.com"}):\n\n${message}`,
     };
 
     // Send the email
