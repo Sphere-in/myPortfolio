@@ -87,6 +87,7 @@ export default function ProjectsPage() {
                 >
                   GitHub <ArrowRight className="w-4 h-4" />
                 </Link>
+                
                 {index === projects.length - 1 && (
                   <Link
                     href={`/projects/${project.id}`}
