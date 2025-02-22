@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from "framer-motion"
 import { useState } from "react"
 import { Badge } from "@/components/ui/badge"
 import React from "react"
+import { GlowingEffect } from "./glowing-effect"
 
 export const HoverEffect = ({
   items,
@@ -46,6 +47,15 @@ export const HoverEffect = ({
               />
             )}
           </AnimatePresence>
+          <GlowingEffect
+                            spread={100}
+                            glow={true}
+                            disabled={false}
+                            proximity={100}
+                            inactiveZone={0.2}
+                            // blur={20}
+                            borderWidth={3}
+                          />
           <Card>
             <CardTitle>{item.title}</CardTitle>
             <CardDescription>{item.description}</CardDescription>

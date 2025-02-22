@@ -5,7 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Brain, Users, Lightbulb, MessageCircle, Target, Puzzle, X } from "lucide-react"
 import { HoverEffect } from "@/components/ui/card-hover-effect"
-
+import { Box, Lock, Search, Settings, Sparkles } from "lucide-react"
+import { GlowingEffect } from "@/components/ui/glowing-effect"
 const softSkills = [
   { name: "Critical Thinking", icon: Brain },
   { name: "Teamwork", icon: Users },
@@ -105,19 +106,29 @@ const Skills = () => {
         <h2 className="text-lg sm:text-2xl font-extrabold text-white mb-4 sm:mb-8">Soft Skills</h2>
         <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 gap-3 sm:gap-6">
           {softSkills.map((skill, index) => (
-            <Card key={index} className="border-primary/20 bg-slate-700">
-              <CardHeader className="p-2 sm:p-4">
-                <CardTitle className="flex items-center gap-2 text-white text-sm sm:text-base">
-                  <skill.icon className="h-4 w-4 sm:h-5 sm:w-5 text-primary flex-shrink-0" />
-                  <span className="truncate">{skill.name}</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-2 sm:p-4">
-                <p className="text-gray-400 text-xs sm:text-sm line-clamp-2">
-                  Proficient in {skill.name.toLowerCase()}, enhancing overall professional effectiveness.
-                </p>
-              </CardContent>
-            </Card>
+            <div key={index} className="relative">
+               {/* <GlowingEffect
+                  spread={100}
+                  glow={true}
+                  disabled={false}
+                  proximity={100}
+                  inactiveZone={0.2}
+                  borderWidth={3}
+                /> */}
+              <Card className="border-primary/20 bg-slate-700 relative z-10">
+                <CardHeader className="p-2 sm:p-4">
+                  <CardTitle className="flex items-center gap-2 text-white text-sm sm:text-base">
+                    <skill.icon className="h-4 w-4 sm:h-5 sm:w-5 text-primary flex-shrink-0" />
+                    <span className="truncate">{skill.name}</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-2 sm:p-4">
+                  <p className="text-gray-400 text-xs sm:text-sm line-clamp-2">
+                    Proficient in {skill.name.toLowerCase()}, enhancing overall professional effectiveness.
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
           ))}
         </div>
       </div>
