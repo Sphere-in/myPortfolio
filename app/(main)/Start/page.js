@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect, useRef } from 'react'
-import { EvervaultCard, Icon } from '@/components/ui/enervault-card'
+// import { EvervaultCard, Icon } from '@/components/ui/enervault-card'
 
 const Start = () => {
   const [hoveredIndex, setHoveredIndex] = useState(null)
@@ -42,7 +42,7 @@ const Start = () => {
           alignItems: 'center'
         }}
       >
-        <h1 className='text-gray-700'>DEVOPS</h1>
+        <h1 className='text-gray-700 p-1'>DEVOPS</h1>
       </div>
 
       <h1 className='z-10 flex flex-col sm:flex-row gap-x-8 justify-center text-7xl sm:text-8xl md:text-8xl lg:text-8xl xl:text-10xl  font-bold font-mono mb-4 tracking-tight cursor-default'>

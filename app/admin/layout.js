@@ -1,16 +1,15 @@
-// export default function AdminLayout({ children }) {
-//     return <>{children}</>
-//   }
-
-import { Toaster } from 'sonner';
+import { Toaster } from "sonner"
+// import { AuthProvider } from "../contexts/AuthContext"
+import { AuthProvider } from "../contexts/AuthContexts"
 
 export default function AdminLayout({ children }) {
   return (
-    <html lang="en">
-      <body>
+    <AuthProvider>
+      <div className="min-h-screen bg-[#001a1a] text-[#00FFB2]">
         {children}
         <Toaster />
-      </body>
-    </html>
-  );
+      </div>
+    </AuthProvider>
+  )
 }
+
