@@ -1,15 +1,17 @@
 import { Toaster } from "sonner"
-// import { AuthProvider } from "../contexts/AuthContext"
 import { AuthProvider } from "../contexts/AuthContexts"
+// import { ThemeProvider } from "@/components/theme-provider"
+import { ThemeProvider } from "@/components/ui/theme-provider"
 
 export default function AdminLayout({ children }) {
   return (
     <AuthProvider>
-      <div className="min-h-screen bg-[#001a1a] text-[#00FFB2]">
-        {children}
-        <Toaster />
-      </div>
+      <ThemeProvider defaultTheme="dark">
+        <div className="min-h-screen bg-background text-foreground">
+          {children}
+          <Toaster />
+        </div>
+      </ThemeProvider>
     </AuthProvider>
   )
 }
-

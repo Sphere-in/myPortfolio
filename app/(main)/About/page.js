@@ -4,13 +4,14 @@ import { Button } from "@/components/ui/button"
 import { Linkedin, Instagram, Globe, Github } from 'lucide-react'
 import ImageSlider from "./image-slider"
 import EducationField from "./EducationField"
-import Skills from "./Skills2"
+import Skills from "./Skills"
 
 export default function Component() {
   return (
     <div className="min-h-screen  bg-slate-950  text-white p-6 md:p-12 relative">
       <div className="max-w-6xl mx-auto pt-16">
-        <div className="grid md:grid-cols-2 gap-8 lg:gap-16 items-start relative">
+
+        <div className="grid lg:grid-cols-2 gap-8 lg:gap-16 items-start relative">
           
           {/* Social Icons Column */}
           <div className="space-y-6">
@@ -51,19 +52,19 @@ export default function Component() {
             </div>
 
             {/* Download CV Button */}
-            <Button className="bg-emerald-500 hover:bg-emerald-600 text-white rounded-full px-6 select-none">
+            {/* <Button className="bg-emerald-500 hover:bg-emerald-600 text-white rounded-full px-6 select-none">
               Download CV
-            </Button>
+            </Button> */}
           </div>
 
           {/* Image Column */}
-          <div className="relative md:sticky md:top-16">
+          <div className=" hidden lg:block ">
             {/* Decorative Circles */}
-            <div className="absolute right-0 top-0 w-48 h-48  rounded-full opacity-20 blur-3xl" />
-            <div className="absolute right-20 top-20 w-48 h-48 bg-blue-500 rounded-full opacity-20 blur-3xl" />
+            {/* <div className="absolute right-0 top-0 w-48 h-48  rounded-full opacity-20 blur-3xl" />
+            <div className="absolute right-20 top-20 w-48 h-48 bg-blue-500 rounded-full opacity-20 blur-3xl" /> */}
 
             {/* Profile Image */}
-            <div className="relative z-10 max-w-md mx-auto">
+            <div className="relative z-10 max-w-md mx-auto ">
               <div className="aspect-square relative overflow-hidden rounded-2xl">
                 <Image
                   src="/me.png"

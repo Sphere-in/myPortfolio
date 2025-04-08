@@ -47,7 +47,7 @@ export const HoverEffect = ({
               />
             )}
           </AnimatePresence>
-          <GlowingEffect
+          {/* <GlowingEffect
                             spread={100}
                             glow={true}
                             disabled={false}
@@ -55,7 +55,7 @@ export const HoverEffect = ({
                             inactiveZone={0.2}
                             // blur={20}
                             borderWidth={3}
-                          />
+                          /> */}
           <Card>
             <CardTitle>{item.title}</CardTitle>
             <CardDescription>{item.description}</CardDescription>

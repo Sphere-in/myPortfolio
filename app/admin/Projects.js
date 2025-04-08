@@ -1,19 +1,39 @@
-'use client'
+"use client"
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import Image from 'next/image'
-import { saveProject, updateProject, deleteProject, getProjects, uploadImage, ensureAuth } from '@/firebase'
+import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
+import Image from "next/image"
+import { saveProject, updateProject, deleteProject, getProjects, uploadImage, ensureAuth } from "@/firebase"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import { Edit, Trash2, Save, Plus, Calendar, Github, Code, Eye, EyeOff } from "lucide-react"
+import { toast } from "sonner"
 
 export default function Projects() {
   const [projectData, setProjectData] = useState({
-    title: '',
-    description: '',
-    githubLink: '',
-    technologies: '',
-    startDate: '',
-    endDate: '',
-    imageUrl: '',
+    title: "",
+    description: "",
+    githubLink: "",
+    technologies: "",
+    startDate: "",
+    endDate: "",
+    imageUrl: "",
     display: true,
   })
   const [projects, setProjects] = useState([])
@@ -21,31 +41,35 @@ export default function Projects() {
   const [error, setError] = useState(null)
   const [editingId, setEditingId] = useState(null)
   const [uploadProgress, setUploadProgress] = useState(0)
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [projectToDelete, setProjectToDelete] = useState(null)
   const router = useRouter()
 
   useEffect(() => {
     const initAuth = async () => {
       try {
-        await ensureAuth();
-        fetchProjects();
+        await ensureAuth()
+        fetchProjects()
       } catch (error) {
-        console.error('Error initializing auth:', error);
-        setError('Failed to authenticate. Please try again.');
+        console.error("Error initializing auth:", error)
+        setError("Failed to authenticate. Please try again.")
+        toast.error("Authentication failed. Please log in again.")
       }
-    };
-    initAuth();
+    }
+    initAuth()
   }, [])
 
   const fetchProjects = async () => {
     try {
-      setIsLoading(true);
+      setIsLoading(true)
       const data = await getProjects()
       setProjects(data)
     } catch (error) {
-      console.error('Error fetching projects:', error)
+      console.error("Error fetching projects:", error)
       setError(error.message)
+      toast.error("Failed to load projects")
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
   }
 
@@ -53,7 +77,7 @@ export default function Projects() {
     const { name, value, type, checked } = e.target
     setProjectData((prevData) => ({
       ...prevData,
-      [name]: type === 'checkbox' ? checked : value,
+      [name]: type === "checkbox" ? checked : value,
     }))
   }
 
@@ -68,10 +92,12 @@ export default function Projects() {
           imageUrl,
         }))
         setUploadProgress(100)
+        toast.success("Image uploaded successfully")
       } catch (error) {
-        console.error('Error uploading image:', error)
+        console.error("Error uploading image:", error)
         setError(error.message)
         setUploadProgress(0)
+        toast.error("Failed to upload image")
       }
     }
   }
@@ -84,26 +110,29 @@ export default function Projects() {
     try {
       if (editingId) {
         await updateProject(editingId, projectData)
+        toast.success("Project updated successfully")
       } else {
         await saveProject(projectData)
+        toast.success("Project saved successfully")
       }
-      alert(editingId ? 'Project updated successfully' : 'Project saved successfully')
+
       setProjectData({
-        title: '',
-        description: '',
-        githubLink: '',
-        technologies: '',
-        startDate: '',
-        endDate: '',
-        imageUrl: '',
+        title: "",
+        description: "",
+        githubLink: "",
+        technologies: "",
+        startDate: "",
+        endDate: "",
+        imageUrl: "",
         display: true,
       })
       setEditingId(null)
       fetchProjects()
       router.refresh()
     } catch (error) {
-      console.error('Error saving project:', error)
+      console.error("Error saving project:", error)
       setError(error.message)
+      toast.error(editingId ? "Failed to update project" : "Failed to save project")
     } finally {
       setIsLoading(false)
     }
@@ -112,198 +141,319 @@ export default function Projects() {
   const handleEdit = (project) => {
     setProjectData(project)
     setEditingId(project.id)
+    toast.info("Editing project: " + project.title)
   }
 
   const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this project?')) {
-      try {
-        await deleteProject(id)
-        alert('Project deleted successfully')
-        fetchProjects()
-      } catch (error) {
-        console.error('Error deleting project:', error)
-        setError(error.message)
-      }
+    try {
+      await deleteProject(id)
+      toast.success("Project deleted successfully")
+      fetchProjects()
+      setDeleteDialogOpen(false)
+    } catch (error) {
+      console.error("Error deleting project:", error)
+      setError(error.message)
+      toast.error("Failed to delete project")
     }
   }
 
-  if (isLoading) {
-    return <div className="min-h-screen bg-[#002626] flex items-center justify-center text-[#00FFB2]">Loading...</div>
+  if (isLoading && projects.length === 0) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-4 text-muted-foreground">Loading projects...</p>
+        </div>
+      </div>
+    )
   }
 
   return (
-    <div className="min-h-screen bg-[#002626] rounded-lg p-8">
-      <h1 className="text-3xl font-bold mb-6 text-[#00FFB2]">Project Management</h1>
-      {error && (
-        <div className="bg-red-600 text-white p-4 rounded mb-4">
-          Error: {error}
-        </div>
-      )}
-      <form onSubmit={handleSubmit} className="space-y-4 mb-8">
-        <div>
-          <label htmlFor="title" className="block mb-1 text-[#00FFB2]">
-            Project Title
-          </label>
-          <input
-            type="text"
-            id="title"
-            name="title"
-            value={projectData.title}
-            onChange={handleChange}
-            required
-            className="w-full p-2 rounded bg-[#001a1a] border-[#00FFB2]/20 text-[#00FFB2]"
-          />
-        </div>
-        <div>
-          <label htmlFor="description" className="block mb-1 text-[#00FFB2]">
-            Project Description
-          </label>
-          <textarea
-            id="description"
-            name="description"
-            value={projectData.description}
-            onChange={handleChange}
-            required
-            className="w-full p-2 rounded bg-[#001a1a] border-[#00FFB2]/20 text-[#00FFB2]"
-            rows="4"
-          ></textarea>
-        </div>
-        <div>
-          <label htmlFor="githubLink" className="block mb-1 text-[#00FFB2]">
-            GitHub Link
-          </label>
-          <input
-            type="url"
-            id="githubLink"
-            name="githubLink"
-            value={projectData.githubLink}
-            onChange={handleChange}
-            required
-            className="w-full p-2 rounded bg-[#001a1a] border-[#00FFB2]/20 text-[#00FFB2]"
-          />
-        </div>
-        <div>
-          <label htmlFor="technologies" className="block mb-1 text-[#00FFB2]">
-            Technologies Used
-          </label>
-          <input
-            type="text"
-            id="technologies"
-            name="technologies"
-            value={projectData.technologies}
-            onChange={handleChange}
-            required
-            className="w-full p-2 rounded bg-[#001a1a] border-[#00FFB2]/20 text-[#00FFB2]"
-          />
-        </div>
-        <div>
-          <label htmlFor="startDate" className="block mb-1 text-[#00FFB2]">
-            Start Date
-          </label>
-          <input
-            type="date"
-            id="startDate"
-            name="startDate"
-            value={projectData.startDate}
-            onChange={handleChange}
-            required
-            className="w-full p-2 rounded bg-[#001a1a] border-[#00FFB2]/20 text-[#00FFB2]"
-          />
-        </div>
-        <div>
-          <label htmlFor="endDate" className="block mb-1 text-[#00FFB2]">
-            End Date
-          </label>
-          <input
-            type="date"
-            id="endDate"
-            name="endDate"
-            value={projectData.endDate}
-            onChange={handleChange}
-            className="w-full p-2 rounded bg-[#001a1a] border-[#00FFB2]/20 text-[#00FFB2]"
-          />
-        </div>
-        <div>
-          <label htmlFor="image" className="block mb-1 text-[#00FFB2]">
-            Project Image
-          </label>
-          <input
-            type="file"
-            id="image"
-            name="image"
-            onChange={handleImageUpload}
-            accept="image/*"
-            className="w-full p-2 rounded bg-[#001a1a] border-[#00FFB2]/20 text-[#00FFB2]"
-          />
-          {uploadProgress > 0 && uploadProgress < 100 && (
-            <div className="mt-2 bg-[#001a1a] rounded-full h-2.5">
-              <div
-                className="bg-[#00FFB2] h-2.5 rounded-full"
-                style={{ width: `${uploadProgress}%` }}
-              ></div>
-            </div>
-          )}
-        </div>
-        {projectData.imageUrl && (
-          <div>
-            <Image src={projectData.imageUrl} alt="Project Image" width={200} height={200} />
-          </div>
-        )}
-        <div>
-          <label htmlFor="display" className="block mb-1 text-[#00FFB2]">
-            Display Project
-          </label>
-          <input
-            type="checkbox"
-            id="display"
-            name="display"
-            checked={projectData.display}
-            onChange={handleChange}
-            className="rounded bg-[#001a1a] border-[#00FFB2]/20 text-[#00FFB2]"
-          />
-        </div>
-        <button
-          type="submit"
-          disabled={isLoading}
-          className={`bg-[#00FFB2] text-[#001a1a] hover:bg-[#00FFB2]/90 font-bold py-2 px-4 rounded ${
-            isLoading ? 'opacity-50 cursor-not-allowed' : ''
-          }`}
-        >
-          {isLoading ? 'Saving...' : (editingId ? 'Update Project' : 'Save Project')}
-        </button>
-      </form>
+    <Tabs defaultValue="form" className="h-full">
+      <TabsList className="mb-4">
+        <TabsTrigger value="form" className="gap-2">
+          {editingId ? <Edit className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
+          {editingId ? "Edit Project" : "New Project"}
+        </TabsTrigger>
+        <TabsTrigger value="list" className="gap-2">
+          <Code className="h-4 w-4" />
+          Project List
+        </TabsTrigger>
+      </TabsList>
 
-      <h2 className="text-2xl font-bold mb-4 text-[#00FFB2]">Project List</h2>
-      <div className="space-y-4">
-        {projects.map((project) => (
-          <div key={project.id} className="bg-[#001a1a] border-[#00FFB2]/20 text-[#00FFB2] p-4 rounded">
-            <h3 className="text-xl font-bold">{project.title}</h3>
-            <p>{project.description}</p>
-            <p>Technologies: {project.technologies}</p>
-            <p>Start Date: {project.startDate}</p>
-            <p>End Date: {project.endDate}</p>
-            <p>Display: {project.display ? 'Yes' : 'No'}</p>
-            {project.imageUrl && (
-              <Image src={project.imageUrl} alt={project.title} width={100} height={100} />
-            )}
-            <div className="mt-2">
-              <button
-                onClick={() => handleEdit(project)}
-                className="bg-[#00FFB2] text-[#001a1a] hover:bg-[#00FFB2]/90 font-bold py-1 px-2 rounded mr-2"
-              >
-                Edit
-              </button>
-              <button
-                onClick={() => handleDelete(project.id)}
-                className="bg-red-500 hover:bg-red-600 text-white font-bold py-1 px-2 rounded"
-              >
-                Delete
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
+      <TabsContent value="form" className="h-[calc(100%-40px)]">
+        <Card>
+          <CardHeader>
+            <CardTitle>{editingId ? "Edit Project" : "Add New Project"}</CardTitle>
+            <CardDescription>
+              {editingId
+                ? "Update the details of your existing project"
+                : "Fill in the details to add a new project to your portfolio"}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form id="projectForm" onSubmit={handleSubmit} className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="title">Project Title</Label>
+                  <Input id="title" name="title" value={projectData.title} onChange={handleChange} required />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="githubLink">GitHub Link</Label>
+                  <Input
+                    id="githubLink"
+                    name="githubLink"
+                    type="url"
+                    value={projectData.githubLink}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="description">Project Description</Label>
+                <Textarea
+                  id="description"
+                  name="description"
+                  value={projectData.description}
+                  onChange={handleChange}
+                  required
+                  rows={4}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="technologies">Technologies Used</Label>
+                <Input
+                  id="technologies"
+                  name="technologies"
+                  value={projectData.technologies}
+                  onChange={handleChange}
+                  required
+                  placeholder="React, Node.js, MongoDB, etc."
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="startDate">Start Date</Label>
+                  <Input
+                    id="startDate"
+                    name="startDate"
+                    type="date"
+                    value={projectData.startDate}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="endDate">End Date</Label>
+                  <Input id="endDate" name="endDate" type="date" value={projectData.endDate} onChange={handleChange} />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="image">Project Image</Label>
+                <div className="flex items-center gap-2">
+                  <Input
+                    id="image"
+                    name="image"
+                    type="file"
+                    onChange={handleImageUpload}
+                    accept="image/*"
+                    className="flex-1"
+                  />
+                  {uploadProgress > 0 && <div className="w-12 text-xs text-center">{uploadProgress}%</div>}
+                </div>
+                {uploadProgress > 0 && uploadProgress < 100 && (
+                  <div className="w-full bg-secondary h-1 mt-1 rounded-full overflow-hidden">
+                    <div
+                      className="bg-primary h-1 transition-all duration-300 ease-in-out"
+                      style={{ width: `${uploadProgress}%` }}
+                    ></div>
+                  </div>
+                )}
+              </div>
+
+              {projectData.imageUrl && (
+                <div className="border rounded-md p-2 inline-block">
+                  <Image
+                    src={projectData.imageUrl || "/placeholder.svg"}
+                    alt="Project Preview"
+                    width={200}
+                    height={150}
+                    className="object-cover rounded"
+                  />
+                </div>
+              )}
+
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="display"
+                  name="display"
+                  checked={projectData.display}
+                  onCheckedChange={(checked) => setProjectData((prev) => ({ ...prev, display: checked }))}
+                />
+                <Label htmlFor="display">Display project on website</Label>
+              </div>
+            </form>
+          </CardContent>
+          <CardFooter className="flex justify-end">
+            <Button type="submit" form="projectForm" disabled={isLoading} className="gap-2">
+              {isLoading ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current"></div>
+                  {editingId ? "Updating..." : "Saving..."}
+                </>
+              ) : (
+                <>
+                  <Save className="h-4 w-4" />
+                  {editingId ? "Update Project" : "Save Project"}
+                </>
+              )}
+            </Button>
+          </CardFooter>
+        </Card>
+      </TabsContent>
+
+      <TabsContent value="list" className="h-[calc(100%-40px)]">
+        <Card className="h-full">
+          <CardHeader>
+            <CardTitle>Project List</CardTitle>
+            <CardDescription>Manage your portfolio projects</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ScrollArea className="h-[calc(100vh-300px)]">
+              {projects.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  No projects found. Add your first project using the form.
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {projects.map((project) => (
+                    <Card key={project.id} className="overflow-hidden">
+                      <div className="flex flex-col md:flex-row">
+                        {project.imageUrl && (
+                          <div className="md:w-1/4">
+                            <Image
+                              src={project.imageUrl || "/placeholder.svg"}
+                              alt={project.title}
+                              width={200}
+                              height={150}
+                              className="w-full h-full object-cover aspect-video"
+                            />
+                          </div>
+                        )}
+                        <div className={`flex-1 p-4 ${project.imageUrl ? "md:w-3/4" : "w-full"}`}>
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <h3 className="text-lg font-semibold">{project.title}</h3>
+                              <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
+                                <Calendar className="h-3.5 w-3.5" />
+                                <span>{project.startDate}</span>
+                                {project.endDate && (
+                                  <>
+                                    <span>-</span>
+                                    <span>{project.endDate}</span>
+                                  </>
+                                )}
+                              </div>
+                            </div>
+                            <div className="flex items-center">
+                              {project.display ? (
+                                <div className="flex items-center text-xs text-green-500 mr-2">
+                                  <Eye className="h-3.5 w-3.5 mr-1" />
+                                  Visible
+                                </div>
+                              ) : (
+                                <div className="flex items-center text-xs text-muted-foreground mr-2">
+                                  <EyeOff className="h-3.5 w-3.5 mr-1" />
+                                  Hidden
+                                </div>
+                              )}
+                            </div>
+                          </div>
+
+                          <p className="text-sm mt-2 line-clamp-2">{project.description}</p>
+
+                          <div className="flex items-center mt-2">
+                            <Github className="h-4 w-4 mr-1" />
+                            <a
+                              href={project.githubLink}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-sm text-primary hover:underline truncate max-w-[200px]"
+                            >
+                              {project.githubLink}
+                            </a>
+                          </div>
+
+                          <div className="mt-2">
+                            <span className="text-xs text-muted-foreground">Technologies:</span>
+                            <div className="flex flex-wrap gap-1 mt-1">
+                              {project.technologies.split(",").map((tech, i) => (
+                                <span
+                                  key={i}
+                                  className="px-2 py-0.5 bg-secondary text-secondary-foreground rounded-full text-xs"
+                                >
+                                  {tech.trim()}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+
+                          <div className="flex gap-2 mt-4">
+                            <Button variant="outline" size="sm" className="gap-1" onClick={() => handleEdit(project)}>
+                              <Edit className="h-3.5 w-3.5" />
+                              Edit
+                            </Button>
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              className="gap-1"
+                              onClick={() => {
+                                setProjectToDelete(project)
+                                setDeleteDialogOpen(true)
+                              }}
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                              Delete
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </ScrollArea>
+          </CardContent>
+        </Card>
+      </TabsContent>
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the project
+              {projectToDelete && <strong> "{projectToDelete.title}"</strong>} from your portfolio.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => handleDelete(projectToDelete?.id)}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </Tabs>
   )
 }
-

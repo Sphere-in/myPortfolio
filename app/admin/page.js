@@ -2,11 +2,15 @@
 
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
-// import { useAuth } from "../contexts/AuthContext"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { ModeToggle } from "@/components/ui/Mode-Toggle"
 import { useAuth } from "../contexts/AuthContexts"
 import SubmissionsPage from "./SubmissionsPage"
 import AboutUsPage from "./AboutUsPage"
 import Projects from "./Projects"
+import { FileText, FolderKanban, Info, LogOut, Menu } from "lucide-react"
+import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetClose } from "@/components/ui/sheet"
 
 const AdminPage = () => {
   const { isAuthenticated, login, logout, user } = useAuth()
@@ -14,6 +18,7 @@ const AdminPage = () => {
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
   const [activePage, setActivePage] = useState("submissions")
+  const [sidebarOpen, setSidebarOpen] = useState(true)
 
   const handleLogin = async (e) => {
     e.preventDefault()
@@ -29,62 +34,140 @@ const AdminPage = () => {
 
   if (!isAuthenticated) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-[#001a1a]">
-        <form onSubmit={handleLogin} className="p-8 bg-[#002626] rounded-lg shadow-xl border border-[#00FFB2]/20">
-          <h1 className="mb-4 text-2xl font-bold text-[#00FFB2]">Admin Login</h1>
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="Enter email"
-            className="w-full mb-4 p-2 bg-[#001a1a] border border-[#00FFB2]/20 text-[#00FFB2] rounded"
-          />
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="Enter password"
-            className="w-full mb-4 p-2 bg-[#001a1a] border border-[#00FFB2]/20 text-[#00FFB2] rounded"
-          />
-          <Button type="submit" className="w-full bg-[#00FFB2] text-[#001a1a] hover:bg-[#00FFB2]/90">
-            Login
-          </Button>
-          {error && <p className="mt-4 text-red-500">{error}</p>}
+      <div className="flex items-center justify-center min-h-screen bg-background">
+        <div className="absolute top-4 right-4">
+          <ModeToggle />
+        </div>
+        <form onSubmit={handleLogin} className="p-8 bg-card rounded-lg shadow-lg border border-border w-full max-w-md">
+          <h1 className="mb-6 text-2xl font-bold text-center">Admin Login</h1>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Enter email"
+                className="bg-background"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
+              <Input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Enter password"
+                className="bg-background"
+              />
+            </div>
+            <Button type="submit" className="w-full">
+              Login
+            </Button>
+            {error && <p className="mt-2 text-sm text-destructive">{error}</p>}
+          </div>
         </form>
       </div>
     )
   }
 
-  return (
-    <div className="flex h-screen bg-[#001a1a] text-[#00FFB2]">
-      <div className="w-auto p-6 border-r border-[#00FFB2]/20">
-        <h1 className="text-2xl font-bold mb-6">Admin Panel</h1>
-        <p className="mb-4">Logged in as: {user.email}</p>
-        <nav className="space-y-2 flex flex-col">
-          <Button
-            onClick={() => setActivePage("submissions")}
-            className={`w-full justify-start ${activePage === "submissions" ? "bg-[#00FFB2] text-[#001a1a] hover:text-[#00FFB2]" : "bg-[#002626] text-[#00FFB2]"}`}
-          >
-            Submissions
-          </Button>
-          <Button
-            onClick={() => setActivePage("projects")}
-            className={`w-full justify-start ${activePage === "projects" ? "bg-[#00FFB2] text-[#001a1a] hover:text-[#00FFB2]" : "bg-[#002626] text-[#00FFB2]"}`}
-          >
-            Edit Projects
-          </Button>
-          <Button
-            onClick={() => setActivePage("about")}
-            className={`w-full justify-start ${activePage === "about" ? "bg-[#00FFB2] text-[#001a1a] hover:text-[#00FFB2]" : "bg-[#002626] text-[#00FFB2]"}`}
-          >
-            Edit About Us
-          </Button>
-        </nav>
-        <Button onClick={logout} className="w-full mt-6 bg-red-500 text-white hover:bg-red-600">
+  const NavItem = ({ icon, label, isActive, onClick }) => (
+    <Button
+      variant={isActive ? "default" : "ghost"}
+      className={`w-full justify-start gap-2 ${isActive ? "" : "hover:bg-accent"}`}
+      onClick={onClick}
+    >
+      {icon}
+      <span>{label}</span>
+    </Button>
+  )
+
+  const handleNavClick = (page) => {
+    setActivePage(page)
+  }
+
+  const SidebarContent = () => (
+    <>
+      <div className="flex items-center justify-between mb-6 px-4 pt-4">
+        <h1 className="text-xl font-bold">Admin Panel</h1>
+      </div>
+      <p className="mb-4 text-sm text-muted-foreground px-4">Logged in as: {user.email}</p>
+      <nav className="space-y-2 px-4">
+        <NavItem
+          icon={<FileText className="h-4 w-4" />}
+          label="Submissions"
+          isActive={activePage === "submissions"}
+          onClick={() => handleNavClick("submissions")}
+        />
+        <NavItem
+          icon={<FolderKanban className="h-4 w-4" />}
+          label="Edit Projects"
+          isActive={activePage === "projects"}
+          onClick={() => handleNavClick("projects")}
+        />
+        <NavItem
+          icon={<Info className="h-4 w-4" />}
+          label="Edit About Us"
+          isActive={activePage === "about"}
+          onClick={() => handleNavClick("about")}
+        />
+      </nav>
+      <div className="px-4 mt-6">
+        <Button onClick={logout} variant="destructive" className="w-full gap-2">
+          <LogOut className="h-4 w-4" />
           Logout
         </Button>
       </div>
-      <div className="flex-1 p-6 overflow-auto">
+    </>
+  )
+
+  return (
+    <div className="flex h-screen bg-background">
+      {/* Desktop Sidebar */}
+      <aside className="hidden md:flex flex-col w-64 border-r border-border">
+        <SidebarContent />
+        <div className="mt-auto p-4 border-t border-border">
+          <ModeToggle />
+        </div>
+      </aside>
+
+      {/* Mobile Sidebar */}
+      <div className="md:hidden flex items-center">
+        <Sheet>
+          <SheetTrigger asChild>
+          <Button 
+        variant="outline" 
+        size="icon" 
+        className="absolute top-4 left-4 z-50"
+      >
+        <Menu className="h-5 w-5" />
+        {/* <span className="sr-only">Toggle Menu</span> */}
+      </Button>
+          </SheetTrigger>
+          <SheetContent side="left" className="p-0 w-72 ">
+            <div className="flex flex-col h-full mt-44">
+              <div className="flex-1 overflow-auto">
+                <SheetTitle className="sr-only">Admin Menu</SheetTitle>
+                <SidebarContent />
+              </div>
+              <div className="p-4 border-t border-border flex items-center justify-between">
+                <ModeToggle />
+                <SheetClose asChild>
+                  <Button variant="ghost" size="sm">Close</Button>
+                </SheetClose>
+              </div>
+            </div>
+          </SheetContent>
+        </Sheet>
+      </div>
+      {/* <div className="ml-auto mr-2"> */}
+      {/* Fix this mode toggle */}
+      {/* <ModeToggle /> */}
+      {/* </div> */}
+
+      <div className="flex-1 overflow-auto p-4 md:p-6 mt-10 md:m-2">
         {activePage === "submissions" && <SubmissionsPage />}
         {activePage === "projects" && <Projects />}
         {activePage === "about" && <AboutUsPage />}
@@ -94,4 +177,3 @@ const AdminPage = () => {
 }
 
 export default AdminPage
-

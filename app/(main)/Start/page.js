@@ -27,8 +27,7 @@ const Start = () => {
   return (
     <div 
       ref={containerRef}
-      className='relative flex flex-col justify-center items-center p-4 text-center min-h-screen'
-    >
+      className='relative flex flex-col justify-center items-center p-4 text-center min-h-screen' >
       <div 
         className='absolute overflow-hidden text-7xl md:text-12xl lg:text-16xl xl:text-20xl 2xl:text-32xl font-extrabold z-0 top-6 h-screen'
         style={{

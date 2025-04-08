@@ -1,14 +1,18 @@
-'use client'
+"use client"
 
-import { useState, useEffect } from 'react'
+import { Skeleton } from "@/components/ui/skeleton"
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden"
+
+import { useState, useEffect } from "react"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Button } from "@/components/ui/button"
-import { RefreshCw, Trash2, Send, X } from 'lucide-react'
+import { RefreshCw, Trash2, Send, Calendar, Mail, Building, FileText } from "lucide-react"
 import { collection, getDocs, deleteDoc, doc } from "firebase/firestore"
 import { db } from "@/firebase"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Input } from "@/components/ui/input"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Separator } from "@/components/ui/separator"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -19,6 +23,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import { toast } from "sonner"
 
 export default function SubmissionsClient() {
   const [submissions, setSubmissions] = useState([])
@@ -26,28 +31,22 @@ export default function SubmissionsClient() {
   const [isLoading, setIsLoading] = useState(true)
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
   const [submissionToDelete, setSubmissionToDelete] = useState(null)
-  const [reply, setReply] = useState('')
+  const [reply, setReply] = useState("")
   const [isSending, setIsSending] = useState(false)
-  const [alert, setAlert] = useState(null)
-
-  const showAlert = (title, description, variant = "default") => {
-    setAlert({ title, description, variant })
-    setTimeout(() => setAlert(null), 5000) // Hide alert after 5 seconds
-  }
 
   const fetchSubmissions = async () => {
     setIsLoading(true)
     try {
       const submissionsCollection = collection(db, "Submissions")
       const submissionDocs = await getDocs(submissionsCollection)
-      const fetchedSubmissions = submissionDocs.docs.map(doc => ({
+      const fetchedSubmissions = submissionDocs.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
       }))
       setSubmissions(fetchedSubmissions.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)))
     } catch (error) {
       console.error("Error fetching submissions:", error)
-      showAlert("Error", "Failed to fetch submissions", "destructive")
+      toast.error("Failed to fetch submissions")
     } finally {
       setIsLoading(false)
     }
@@ -64,190 +63,194 @@ export default function SubmissionsClient() {
   const handleDelete = async (id) => {
     try {
       await deleteDoc(doc(db, "Submissions", id))
-      setSubmissions(submissions.filter(sub => sub.id !== id))
+      setSubmissions(submissions.filter((sub) => sub.id !== id))
       if (selectedSubmission?.id === id) {
         setSelectedSubmission(null)
       }
-      showAlert("Success", "The submission has been deleted successfully")
+      toast.success("The submission has been deleted successfully")
     } catch (error) {
       console.error("Error deleting submission:", error)
-      showAlert("Error", "Failed to delete submission", "destructive")
+      toast.error("Failed to delete submission")
     }
     setDeleteConfirmOpen(false)
   }
 
   const handleReply = async () => {
     if (selectedSubmission && reply) {
-      setIsSending(true);
+      setIsSending(true)
       try {
-        const response = await fetch('/api/sendEmail', {
-          method: 'POST',
+        const response = await fetch("/api/sendEmail", {
+          method: "POST",
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            name: 'Raihan Shaikh',
+            name: "Raihan Shaikh",
             email: process.env.ADMIN_EMAIL,
-            subject: `Re: ${selectedSubmission.subject || 'Your message'}`,
+            subject: `Re: ${selectedSubmission.subject || "Your message"}`,
             message: reply,
             to: selectedSubmission.email,
           }),
-        });
-  
+        })
+
         if (response.ok) {
-          showAlert("Success", "Your reply has been sent successfully")
-          setReply('');
+          toast.success("Your reply has been sent successfully")
+          setReply("")
         } else {
-          throw new Error("Failed to send reply");
+          throw new Error("Failed to send reply")
         }
       } catch (error) {
-        console.error("Error sending reply:", error);
-        showAlert("Error", "Failed to send reply", "destructive")
+        console.error("Error sending reply:", error)
+        toast.error("Failed to send reply")
       } finally {
-        setIsSending(false);
+        setIsSending(false)
       }
     }
-  };
+  }
 
   return (
-    <div className="flex h-full relative">
-      {alert && (
-        <Alert 
-          variant={alert.variant}
-          className="absolute top-4 right-4 w-96 z-50"
-        >
-          <AlertTitle>{alert.title}</AlertTitle>
-          <AlertDescription>{alert.description}</AlertDescription>
-          <Button 
-            variant="ghost" 
-            className="h-4 w-4 absolute top-4 right-4 p-0" 
-            onClick={() => setAlert(null)}
-          >
-            <X className="h-4 w-4" />
-          </Button>
-        </Alert>
-      )}
-      <div className="w-1/3 pr-6 border-r border-[#00FFB2]/20">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold">Submissions</h2>
-          <Button
-            onClick={handleReload}
-            disabled={isLoading}
-            className="bg-[#00FFB2] text-[#001a1a] hover:bg-[#00FFB2]/90"
-          >
+    <div className="flex flex-col md:flex-row h-full gap-6">
+      <Card className="md:w-1/3 h-full">
+        <CardHeader className="pb-3">
+          <div className="flex justify-between items-center">
+            <CardTitle>Submissions</CardTitle>
+            <Button onClick={handleReload} disabled={isLoading} variant="outline" size="sm">
+              {isLoading ? <RefreshCw className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+              <span className="ml-2 hidden sm:inline">Reload</span>
+            </Button>
+          </div>
+          <CardDescription>Manage incoming contact form submissions</CardDescription>
+        </CardHeader>
+        <CardContent className="h-[calc(100%-120px)]">
+          <ScrollArea className="h-full pr-4">
             {isLoading ? (
-              <RefreshCw className="h-4 w-4 animate-spin" />
-            ) : (
-              <RefreshCw className="h-4 w-4" />
-            )}
-            <span className="ml-2">Reload</span>
-          </Button>
-        </div>
-        <ScrollArea className="h-[calc(100vh-200px)]">
-          {isLoading ? (
-            <div className="text-center py-4">Loading submissions...</div>
-          ) : submissions.length === 0 ? (
-            <div className="text-center py-4">No submissions found.</div>
-          ) : (
-            submissions.map((sub) => (
-              <div
-                key={sub.id}
-                className={`p-4 mb-2 rounded cursor-pointer transition-colors ${
-                  selectedSubmission?.id === sub.id 
-                    ? 'bg-[#00FFB2]/10 border border-[#00FFB2]/20' 
-                    : 'bg-[#002626] hover:bg-[#00FFB2]/5'
-                }`}
-                onClick={() => setSelectedSubmission(sub)}
-              >
-                <div className="flex justify-between items-start">
-                  <div>
-                    <h3 className="font-semibold">{sub.name}</h3>
-                    <p className="text-sm text-[#00FFB2]/70">{sub.email}</p>
-                    <p className="text-xs text-[#00FFB2]/50">{new Date(sub.timestamp).toLocaleString()}</p>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      setSubmissionToDelete(sub)
-                      setDeleteConfirmOpen(true)
-                    }}
-                  >
-                    <Trash2 className="h-4 w-4 text-[#00FFB2]/70" />
-                  </Button>
-                </div>
+              <div className="space-y-2">
+                {[1, 2, 3].map((i) => (
+                  <Skeleton key={i} className="h-24 w-full rounded-md" />
+                ))}
               </div>
-            ))
-          )}
-        </ScrollArea>
-      </div>
-      <div className="flex-1 pl-6">
+            ) : submissions.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">No submissions found.</div>
+            ) : (
+              <div className="space-y-2">
+                {submissions.map((sub) => (
+                  <Card
+                    key={sub.id}
+                    className={`cursor-pointer transition-all ${selectedSubmission?.id === sub.id ? "ring-2 ring-primary" : "hover:bg-accent/50"
+                      }`}
+                    onClick={() => setSelectedSubmission(sub)}
+                  >
+                    <CardContent className="p-4">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h3 className="font-medium">{sub.name}</h3>
+                          <p className="text-sm text-muted-foreground">{sub.email}</p>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            {new Date(sub.timestamp).toLocaleString()}
+                          </p>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            setSubmissionToDelete(sub)
+                            setDeleteConfirmOpen(true)
+                          }}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </ScrollArea>
+        </CardContent>
+      </Card>
+
+      <div className="flex-1">
         {!selectedSubmission ? (
           <div className="flex items-center justify-center h-full">
-            <p className="text-[#00FFB2]/50">Select a submission to view details</p>
+            <div className="text-center text-muted-foreground">
+              <FileText className="h-12 w-12 mx-auto mb-4 opacity-20" />
+              <p>Select a submission to view details</p>
+            </div>
           </div>
         ) : (
-          <div className="bg-[#002626] rounded-lg p-6 h-full flex flex-col border border-[#00FFB2]/20">
-            <div className="mb-4">
-              <Avatar className="h-12 w-12 mb-2 border-2 border-[#00FFB2]/20">
-                <AvatarImage src={`https://api.dicebear.com/6.x/initials/svg?seed=${selectedSubmission.name}`} />
-                <AvatarFallback className="bg-[#001a1a] text-[#00FFB2]">
-                  {selectedSubmission.name.charAt(0)}
-                </AvatarFallback>
-              </Avatar>
-              <h2 className="text-xl font-bold">{selectedSubmission.name}</h2>
-              <p className="text-[#00FFB2]/70">{selectedSubmission.email}</p>
-              {selectedSubmission.company && (
-                <p className="text-[#00FFB2]/70">{selectedSubmission.company}</p>
-              )}
-              <p className="text-xs text-[#00FFB2]/50">
-                {new Date(selectedSubmission.timestamp).toLocaleString()}
-              </p>
-            </div>
-            <ScrollArea className="flex-1 mb-4">
-              <div className="space-y-4">
-                <div className="bg-[#001a1a] p-4 rounded-lg">
-                  <p className="text-[#00FFB2]/90">{selectedSubmission.message}</p>
+          <Card className="h-full">
+            <CardHeader>
+              <div className="flex items-start gap-4">
+                <Avatar className="h-12 w-12 border">
+                  <AvatarImage src={`https://api.dicebear.com/6.x/initials/svg?seed=${selectedSubmission.name}`} />
+                  <AvatarFallback>{selectedSubmission.name.charAt(0)}</AvatarFallback>
+                </Avatar>
+                <div>
+                  <CardTitle>{selectedSubmission.name}</CardTitle>
+                  <div className="flex flex-col gap-1 mt-1">
+                    <div className="flex items-center text-sm text-muted-foreground">
+                      <Mail className="h-3.5 w-3.5 mr-1" />
+                      {selectedSubmission.email}
+                    </div>
+                    {selectedSubmission.company && (
+                      <div className="flex items-center text-sm text-muted-foreground">
+                        <Building className="h-3.5 w-3.5 mr-1" />
+                        {selectedSubmission.company}
+                      </div>
+                    )}
+                    <div className="flex items-center text-xs text-muted-foreground">
+                      <Calendar className="h-3.5 w-3.5 mr-1" />
+                      {new Date(selectedSubmission.timestamp).toLocaleString()}
+                    </div>
+                  </div>
                 </div>
               </div>
-            </ScrollArea>
-            <div className="mt-auto">
-              <div className="flex items-center space-x-2">
+            </CardHeader>
+            <CardContent>
+              <Separator className="mb-4" />
+              <ScrollArea className="h-[calc(100vh-450px)] md:h-[300px]">
+                <div className="bg-accent/50 p-4 rounded-lg">
+                  <p className="whitespace-pre-wrap">{selectedSubmission.message}</p>
+                </div>
+              </ScrollArea>
+            </CardContent>
+            <CardFooter className="flex flex-col">
+              <Separator className="mb-4" />
+              <div className="flex items-center space-x-2 w-full">
                 <Input
                   value={reply}
                   onChange={(e) => setReply(e.target.value)}
                   placeholder="Type your reply..."
-                  className="flex-1 bg-[#001a1a] border-[#00FFB2]/20 text-[#00FFB2]"
+                  className="flex-1"
                 />
-                <Button 
-                  onClick={handleReply}
-                  disabled={isSending}
-                  className="bg-[#00FFB2] text-[#001a1a] hover:bg-[#00FFB2]/90"
-                >
-                  {isSending ? (
-                    <Send className="h-4 w-4 mr-2 animate-spin" />
-                  ) : (
-                    <Send className="h-4 w-4 mr-2" />
-                  )}
-                  {isSending ? 'Sending...' : 'Send'}
+                <Button onClick={handleReply} disabled={isSending || !reply.trim()}>
+                  {isSending ? <RefreshCw className="h-4 w-4 mr-2 animate-spin" /> : <Send className="h-4 w-4 mr-2" />}
+                  {isSending ? "Sending..." : "Send"}
                 </Button>
               </div>
-            </div>
-          </div>
+            </CardFooter>
+          </Card>
         )}
       </div>
+
       <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
+            <VisuallyHidden>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            </VisuallyHidden>
             <AlertDialogDescription>
               This action cannot be undone. This will permanently delete the submission.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="text-slate-900">Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={() => handleDelete(submissionToDelete?.id)}>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => handleDelete(submissionToDelete?.id)}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
               Delete
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -256,4 +259,3 @@ export default function SubmissionsClient() {
     </div>
   )
 }
-

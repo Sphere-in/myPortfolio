@@ -4,7 +4,6 @@ import { useState, useEffect } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { ArrowRight } from "lucide-react"
-// import { getProjects } from "../path/to/your/firebase-file"
 import { getProjects } from "@/firebase"
 
 export default function ProjectsPage() {
@@ -58,6 +57,8 @@ export default function ProjectsPage() {
             } gap-8 md:gap-16 items-center`}
           >
             <div className="w-full md:w-1/2 relative aspect-video">
+            <Link
+            href={`/Projects/${project.id}`}>
               <Image
                 src={project.imageUrl || "/placeholder.svg?height=300&width=400"}
                 alt={project.title}
@@ -65,6 +66,9 @@ export default function ProjectsPage() {
                 sizes="(max-width: 768px) 100vw, 50vw"
                 className="rounded-lg object-cover"
               />
+
+
+            </Link>
             </div>
             <div className="w-full md:w-1/2 space-y-4">
               <h2 className="text-2xl font-bold">{project.title}</h2>
@@ -88,7 +92,8 @@ export default function ProjectsPage() {
 
                 {index === projects.length - 1 && (
                   <Link
-                    href={`/projects/${project.id}`}
+                    // href={`/projects/${project.id}`}
+                    href={`Projects/all`}
                     className="flex items-center gap-2 text-sm hover:text-neutral-400 transition-colors"
                   >
                     Show more <ArrowRight className="w-4 h-4" />

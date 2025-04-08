@@ -2,16 +2,6 @@ import React from 'react'
 import { X } from 'lucide-react'
 import { motion } from 'framer-motion'
 
-// interface SidebarProps {
-//   isOpen: boolean
-//   onClose: () => void
-//   skill: {
-//     name: string
-//     level: string
-//     description: string
-//   } | null
-// }
-
 const Sidebar = ({ isOpen, onClose, skill }) => {
   return (
     <>

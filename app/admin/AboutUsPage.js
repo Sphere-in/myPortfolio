@@ -1,32 +1,50 @@
-import { useState, useEffect } from 'react'
+"use client"
+
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Save } from "lucide-react"
+import { toast } from "sonner"
 
 export default function AboutUsPage() {
-  const [aboutContent, setAboutContent] = useState('')
+  const [aboutContent, setAboutContent] = useState("")
+  const [isSaving, setIsSaving] = useState(false)
 
   useEffect(() => {
-    const storedContent = localStorage.getItem('aboutContent') || ''
+    const storedContent = localStorage.getItem("aboutContent") || ""
     setAboutContent(storedContent)
   }, [])
 
   const handleSave = () => {
-    localStorage.setItem('aboutContent', aboutContent)
-    alert('About Us content saved successfully!')
+    setIsSaving(true)
+    setTimeout(() => {
+      localStorage.setItem("aboutContent", aboutContent)
+      toast.success("About Us content saved successfully!")
+      setIsSaving(false)
+    }, 500)
   }
 
   return (
-    <div className="space-y-6">
-      <h2 className="text-2xl font-bold">Edit About Us</h2>
-      <Textarea
-        value={aboutContent}
-        onChange={(e) => setAboutContent(e.target.value)}
-        placeholder="Enter your 'About Us' content here..."
-        className="h-[calc(100vh-250px)] bg-[#002626] border-[#00FFB2]/20 text-[#00FFB2]"
-      />
-      <Button onClick={handleSave} className="bg-[#00FFB2] text-[#001a1a] hover:bg-[#00FFB2]/90">
-        Save Changes
-      </Button>
-    </div>
+    <Card className="h-full">
+      <CardHeader>
+        <CardTitle>Edit About Us</CardTitle>
+        <CardDescription>Update the About Us content for your website</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <Textarea
+          value={aboutContent}
+          onChange={(e) => setAboutContent(e.target.value)}
+          placeholder="Enter your 'About Us' content here..."
+          className="min-h-[calc(100vh-300px)] resize-none"
+        />
+      </CardContent>
+      <CardFooter className="flex justify-end">
+        <Button onClick={handleSave} disabled={isSaving} className="gap-2">
+          <Save className="h-4 w-4" />
+          {isSaving ? "Saving..." : "Save Changes"}
+        </Button>
+      </CardFooter>
+    </Card>
   )
 }

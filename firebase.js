@@ -1,6 +1,7 @@
 import { initializeApp, getApps } from "firebase/app"
 import { getFirestore } from "firebase/firestore"
 import { getStorage } from "firebase/storage"
+import { getDoc } from "firebase/firestore"
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, signInAnonymously } from "firebase/auth"
 import { collection, addDoc, updateDoc, deleteDoc, getDocs, doc } from "firebase/firestore"
 import {uploadBytes, getDownloadURL, ref } from "firebase/storage"
@@ -101,6 +102,23 @@ export const deleteProject = async (id) => {
   }
 }
 
+export const getProjectById = async (id) => {
+  try {
+    await ensureAuth()
+    const docRef = doc(db, "projects", id)
+    const docSnap = await getDoc(docRef)  // Changed getDocs to getDoc
+    
+    if (docSnap.exists()) {
+      return { id: docSnap.id, ...docSnap.data() }
+    } else {
+      throw new Error("Project not found")
+    }
+  } catch (error) {
+    console.error("Error fetching project: ", error)
+    throw error
+  }
+}
+
 export const getProjects = async () => {
   try {
     await ensureAuth()
@@ -111,6 +129,7 @@ export const getProjects = async () => {
     throw error
   }
 }
+
 
 export const uploadImage = async (file) => {
   try {
