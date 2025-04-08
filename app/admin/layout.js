@@ -1,3 +1,4 @@
+"use client"
 import { Toaster } from "sonner"
 import { AuthProvider } from "../contexts/AuthContexts"
 // import { ThemeProvider } from "@/components/theme-provider"
