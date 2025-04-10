@@ -326,7 +326,7 @@ export default function Projects() {
             <CardDescription>Manage your portfolio projects</CardDescription>
           </CardHeader>
           <CardContent>
-            <ScrollArea className="h-[calc(100vh-300px)]">
+            <ScrollArea className="h-[calc(100vh-270px)]">
               {projects.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground">
                   No projects found. Add your first project using the form.
