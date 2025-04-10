@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { ArrowLeft, ArrowRight } from "lucide-react"
-import { getProjects } from "@/firebase"
+import { getProjects } from "@/lib/firebase"
 
 export default function AllProjectsPage() {
   const [projects, setProjects] = useState([])

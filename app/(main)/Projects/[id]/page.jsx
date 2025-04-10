@@ -5,7 +5,7 @@ import { use } from "react" // Added import for React.use
 import Link from "next/link"
 import Image from "next/image"
 import { ArrowLeft, Github, Globe } from "lucide-react"
-import { getProjectById } from "@/firebase"
+import { getProjectById } from "@/lib/firebase"
 
 export default function ProjectDetailPage({ params }) {
   // Unwrap params with React.use() to resolve the Promise

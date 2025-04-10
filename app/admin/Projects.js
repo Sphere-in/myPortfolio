@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
-import { saveProject, updateProject, deleteProject, getProjects, uploadImage, ensureAuth } from "@/firebase"
+import { saveProject, updateProject, deleteProject, getProjects, uploadImage, ensureAuth } from "@/lib/firebase"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
