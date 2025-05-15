@@ -1,24 +1,37 @@
 "use client"
 
-import { useState } from "react"
+import React from "react"
+
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { ModeToggle } from "@/components/ui/Mode-Toggle"
-import { useAuth } from "../contexts/AuthContexts"
+import { useAuth } from "../../contexts/AuthContext"
 import SubmissionsPage from "./SubmissionsPage"
 import AboutUsPage from "./AboutUsPage"
 import Projects from "./Projects"
-import { FileText, FolderKanban, Info, LogOut, Menu } from "lucide-react"
+import { FileText, FolderKanban, Info, LogOut, Menu, UserPlus } from "lucide-react"
 import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetClose } from "@/components/ui/sheet"
+import { useRouter } from "next/navigation"
 
-const AdminPage = () => {
-  const { isAuthenticated, login, logout, user } = useAuth()
+export default function AdminPage() {
+  const { isAuthenticated, login, logout, user, isLoading } = useAuth()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
   const [activePage, setActivePage] = useState("submissions")
-  const [sidebarOpen, setSidebarOpen] = useState(true)
+  const router = useRouter()
+
+  useEffect(() => {
+    // If authentication is still loading, do nothing
+    if (isLoading) return
+
+    // If not authenticated after loading, redirect to login
+    if (!isAuthenticated && !isLoading) {
+      // No need to redirect, we'll show the login form
+    }
+  }, [isAuthenticated, isLoading, router])
 
   const handleLogin = async (e) => {
     e.preventDefault()
@@ -30,6 +43,14 @@ const AdminPage = () => {
     } else {
       setError("Invalid email or password. Please try again.")
     }
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-background">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    )
   }
 
   if (!isAuthenticated) {
@@ -73,7 +94,12 @@ const AdminPage = () => {
     )
   }
 
-  const NavItem = ({ icon, label, isActive, onClick }) => (
+  const NavItem = ({
+    icon,
+    label,
+    isActive,
+    onClick,
+  }) => (
     <Button
       variant={isActive ? "default" : "ghost"}
       className={`w-full justify-start gap-2 ${isActive ? "" : "hover:bg-accent"}`}
@@ -93,7 +119,7 @@ const AdminPage = () => {
       <div className="flex items-center justify-between mb-6 px-4 pt-4">
         <h1 className="text-xl font-bold">Admin Panel</h1>
       </div>
-      <p className="mb-4 text-sm text-muted-foreground px-4">Logged in as: {user.email}</p>
+      <p className="mb-4 text-sm text-muted-foreground px-4">Logged in as: {user?.email}</p>
       <nav className="space-y-2 px-4">
         <NavItem
           icon={<FileText className="h-4 w-4" />}
@@ -112,6 +138,12 @@ const AdminPage = () => {
           label="Edit About Us"
           isActive={activePage === "about"}
           onClick={() => handleNavClick("about")}
+        />
+        <NavItem
+          icon={<UserPlus className="h-4 w-4" />}
+          label="Create Admin"
+          isActive={activePage === "create-admin"}
+          onClick={() => router.push("/admin/create-admin")}
         />
       </nav>
       <div className="px-4 mt-6">
@@ -137,17 +169,13 @@ const AdminPage = () => {
       <div className="md:hidden flex items-center">
         <Sheet>
           <SheetTrigger asChild>
-          <Button 
-        variant="outline" 
-        size="icon" 
-        className="absolute top-4 left-4 z-50"
-      >
-        <Menu className="h-5 w-5" />
-        {/* <span className="sr-only">Toggle Menu</span> */}
-      </Button>
+            <Button variant="outline" size="icon" className="absolute top-4 left-4 z-50">
+              <Menu className="h-5 w-5" />
+              <span className="sr-only">Toggle Menu</span>
+            </Button>
           </SheetTrigger>
-          <SheetContent side="left" className="p-0 w-72 ">
-            <div className="flex flex-col h-full mt-44">
+          <SheetContent side="left" className="p-0 w-72">
+            <div className="flex flex-col h-full">
               <div className="flex-1 overflow-auto">
                 <SheetTitle className="sr-only">Admin Menu</SheetTitle>
                 <SidebarContent />
@@ -155,19 +183,17 @@ const AdminPage = () => {
               <div className="p-4 border-t border-border flex items-center justify-between">
                 <ModeToggle />
                 <SheetClose asChild>
-                  <Button variant="ghost" size="sm">Close</Button>
+                  <Button variant="ghost" size="sm">
+                    Close
+                  </Button>
                 </SheetClose>
               </div>
             </div>
           </SheetContent>
         </Sheet>
       </div>
-      {/* <div className="ml-auto mr-2"> */}
-      {/* Fix this mode toggle */}
-      {/* <ModeToggle /> */}
-      {/* </div> */}
 
-      <div className="flex-1 overflow-auto p-4 md:p-6 mt-10 md:m-2">
+      <div className="flex-1 overflow-auto p-4 md:p-6 mt-10 md:mt-0">
         {activePage === "submissions" && <SubmissionsPage />}
         {activePage === "projects" && <Projects />}
         {activePage === "about" && <AboutUsPage />}
@@ -175,5 +201,3 @@ const AdminPage = () => {
     </div>
   )
 }
-
-export default AdminPage

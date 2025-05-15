@@ -64,7 +64,7 @@ export default function Component() {
             <div className="absolute right-20 top-20 w-48 h-48 bg-blue-500 rounded-full opacity-20 blur-3xl" /> */}
 
             {/* Profile Image */}
-            <div className="relative z-10 max-w-md mx-auto ">
+            <div className="relative z-10 max-w-md mx-auto hidden md:block ">
               <div className="aspect-square relative overflow-hidden rounded-2xl">
                 <Image
                   src="/me.png"

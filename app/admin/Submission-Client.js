@@ -1,14 +1,12 @@
 "use client"
 
 import { Skeleton } from "@/components/ui/skeleton"
-import { VisuallyHidden } from "@radix-ui/react-visually-hidden"
 
 import { useState, useEffect } from "react"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Button } from "@/components/ui/button"
 import { RefreshCw, Trash2, Send, Calendar, Mail, Building, FileText } from "lucide-react"
-import { collection, getDocs, deleteDoc, doc } from "firebase/firestore"
-import { db } from "@/lib/firebase"
+import { getAuth } from "firebase/auth"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
@@ -25,6 +23,8 @@ import {
 } from "@/components/ui/alert-dialog"
 import { toast } from "sonner"
 
+
+
 export default function SubmissionsClient() {
   const [submissions, setSubmissions] = useState([])
   const [selectedSubmission, setSelectedSubmission] = useState(null)
@@ -33,17 +33,34 @@ export default function SubmissionsClient() {
   const [submissionToDelete, setSubmissionToDelete] = useState(null)
   const [reply, setReply] = useState("")
   const [isSending, setIsSending] = useState(false)
+  const auth = getAuth()
 
   const fetchSubmissions = async () => {
     setIsLoading(true)
     try {
-      const submissionsCollection = collection(db, "Submissions")
-      const submissionDocs = await getDocs(submissionsCollection)
-      const fetchedSubmissions = submissionDocs.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }))
-      setSubmissions(fetchedSubmissions.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)))
+      const user = auth.currentUser
+      if (!user) {
+        throw new Error("Not authenticated")
+      }
+
+      const idToken = await user.getIdToken()
+
+      const response = await fetch("/api/contact", {
+        headers: {
+          Authorization: `Bearer ${idToken}`,
+        },
+      })
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch submissions")
+      }
+
+      const data = await response.json()
+      setSubmissions(
+        data.submissions.sort(
+          (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
+        ),
+      )
     } catch (error) {
       console.error("Error fetching submissions:", error)
       toast.error("Failed to fetch submissions")
@@ -62,7 +79,24 @@ export default function SubmissionsClient() {
 
   const handleDelete = async (id) => {
     try {
-      await deleteDoc(doc(db, "Submissions", id))
+      const user = auth.currentUser
+      if (!user) {
+        throw new Error("Not authenticated")
+      }
+
+      const idToken = await user.getIdToken()
+
+      const response = await fetch(`/api/submissions/${id}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${idToken}`,
+        },
+      })
+
+      if (!response.ok) {
+        throw new Error("Failed to delete submission")
+      }
+
       setSubmissions(submissions.filter((sub) => sub.id !== id))
       if (selectedSubmission?.id === id) {
         setSelectedSubmission(null)
@@ -79,25 +113,52 @@ export default function SubmissionsClient() {
     if (selectedSubmission && reply) {
       setIsSending(true)
       try {
+        const user = auth.currentUser
+        if (!user) {
+          throw new Error("Not authenticated")
+        }
+
+        const idToken = await user.getIdToken()
+
         const response = await fetch("/api/sendEmail", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
+            Authorization: `Bearer ${idToken}`,
           },
           body: JSON.stringify({
-            name: "Raihan Shaikh",
-            email: process.env.ADMIN_EMAIL,
+            name: user.displayName || "Admin",
+            email: user.email || process.env.ADMIN_EMAIL,
             subject: `Re: ${selectedSubmission.subject || "Your message"}`,
             message: reply,
             to: selectedSubmission.email,
           }),
         })
 
-        if (response.ok) {
-          toast.success("Your reply has been sent successfully")
-          setReply("")
-        } else {
+        if (!response.ok) {
           throw new Error("Failed to send reply")
+        }
+
+        toast.success("Your reply has been sent successfully")
+        setReply("")
+
+        // Mark as read
+        await fetch(`/api/submissions/${selectedSubmission.id}`, {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${idToken}`,
+          },
+          body: JSON.stringify({
+            read: true,
+          }),
+        })
+
+        // Update local state
+        setSubmissions(submissions.map((sub) => (sub.id === selectedSubmission.id ? { ...sub, read: true } : sub)))
+
+        if (selectedSubmission) {
+          setSelectedSubmission({ ...selectedSubmission, read: true })
         }
       } catch (error) {
         console.error("Error sending reply:", error)
@@ -105,6 +166,39 @@ export default function SubmissionsClient() {
       } finally {
         setIsSending(false)
       }
+    }
+  }
+
+  const markAsRead = async (submission) => {
+    if (submission.read) return
+
+    try {
+      const user = auth.currentUser
+      if (!user) {
+        throw new Error("Not authenticated")
+      }
+
+      const idToken = await user.getIdToken()
+
+      await fetch(`/api/submissions/${submission.id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${idToken}`,
+        },
+        body: JSON.stringify({
+          read: true,
+        }),
+      })
+
+      // Update local state
+      setSubmissions(submissions.map((sub) => (sub.id === submission.id ? { ...sub, read: true } : sub)))
+
+      if (selectedSubmission && selectedSubmission.id === submission.id) {
+        setSelectedSubmission({ ...selectedSubmission, read: true })
+      }
+    } catch (error) {
+      console.error("Error marking as read:", error)
     }
   }
 
@@ -136,14 +230,18 @@ export default function SubmissionsClient() {
                 {submissions.map((sub) => (
                   <Card
                     key={sub.id}
-                    className={`cursor-pointer transition-all ${selectedSubmission?.id === sub.id ? "ring-2 ring-primary" : "hover:bg-accent/50"
-                      }`}
-                    onClick={() => setSelectedSubmission(sub)}
+                    className={`cursor-pointer transition-all ${
+                      selectedSubmission?.id === sub.id ? "ring-2 ring-primary" : "hover:bg-accent/50"
+                    } ${!sub.read ? "border-l-4 border-l-primary" : ""}`}
+                    onClick={() => {
+                      setSelectedSubmission(sub)
+                      markAsRead(sub)
+                    }}
                   >
                     <CardContent className="p-4">
                       <div className="flex justify-between items-start">
                         <div>
-                          <h3 className="font-medium">{sub.name}</h3>
+                          <h3 className={`font-medium ${!sub.read ? "font-semibold" : ""}`}>{sub.name}</h3>
                           <p className="text-sm text-muted-foreground">{sub.email}</p>
                           <p className="text-xs text-muted-foreground mt-1">
                             {new Date(sub.timestamp).toLocaleString()}
@@ -238,9 +336,7 @@ export default function SubmissionsClient() {
       <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <VisuallyHidden>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-            </VisuallyHidden>
             <AlertDialogDescription>
               This action cannot be undone. This will permanently delete the submission.
             </AlertDialogDescription>
@@ -248,7 +344,7 @@ export default function SubmissionsClient() {
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
-              onClick={() => handleDelete(submissionToDelete?.id)}
+              onClick={() => submissionToDelete && handleDelete(submissionToDelete.id)}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               Delete

@@ -6,6 +6,7 @@ import Image from "next/image"
 import { ArrowRight } from "lucide-react"
 import { getProjects } from "@/lib/firebase"
 
+
 export default function ProjectsPage() {
   const [projects, setProjects] = useState([])
   const [isLoading, setIsLoading] = useState(true)
@@ -59,13 +60,19 @@ export default function ProjectsPage() {
             <div className="w-full md:w-1/2 relative aspect-video">
             <Link
             href={`/Projects/${project.id}`}>
+              {console.log(project)}
               <Image
-                src={project.imageUrl || "/placeholder.svg?height=300&width=400"}
-                alt={project.title}
-                fill
-                sizes="(max-width: 768px) 100vw, 50vw"
-                className="rounded-lg object-cover"
-              />
+                  src={
+                    project.imageUrl ||
+                    (project.imageUrls && project.imageUrls.length > 0
+                      ? project.imageUrls[0]
+                      : "/placeholder.svg?height=300&width=400")
+                  }
+                  alt={project.title}
+                  fill
+                  sizes="(max-width: 768px) 100vw, 50vw"
+                  className="rounded-lg object-cover"
+                />
 
 
             </Link>

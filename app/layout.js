@@ -1,6 +1,6 @@
-import { AuthProvider } from "./contexts/AuthContexts"
+import { AuthProvider } from "../contexts/AuthContext"
 import "./globals.css"
-// import FontLoader from "./components/FontLoader"
+import { Toaster } from "@/components/ui/toaster"
 
 export const metadata = {
   title: "IaMRaihan",
@@ -10,9 +10,12 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      {/* <FontLoader /> */}
       <body className="text-white h-screen m-0 p-0 bg-black" suppressHydrationWarning>
-        <AuthProvider>{children}</AuthProvider>
+        <AuthProvider>
+          {children}
+          <Toaster position="top-center" richColors closeButton />
+        </AuthProvider>
       </body>
     </html>
-  )}
+  )
+}

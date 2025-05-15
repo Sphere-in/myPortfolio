@@ -22,7 +22,6 @@ export default function ContactForm() {
   const [errors, setErrors] = useState({});
   const [alertInfo, setAlertInfo] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  // const { toast } = useToast();
 
   const validateForm = () => {
     const newErrors = {};
@@ -58,13 +57,7 @@ export default function ContactForm() {
           }),
         });
 
-        if (response.ok && docRef.id) {
-          // setAlertInfo({
-          //   type: 'success',
-          //   title: 'Success!',
-          //   message: "We'll get back to you as soon as possible.",
-          // });
-          // setTimeout(() => {setAlertInfo(null)}, 4000);
+        if ( docRef.id) {
           toast.success("We'll get back to you as soon as possible.")
 
           setFormData({ name: "", email: "", company: "", message: "" });
@@ -72,12 +65,6 @@ export default function ContactForm() {
           throw new Error("Failed to send message or save submission.");
         }
       } catch (error) {
-        // setAlertInfo({
-        //   type: 'error',
-        //   title: 'Error!',
-        //   message: "Something went wrong. Please try again later.",
-        // });
-        // setTimeout(() => {setAlertInfo(null)}, 4000);
         toast.error("Something went wrong. Please try again later.")
         console.error("Error during submission:", error);
       } finally {
