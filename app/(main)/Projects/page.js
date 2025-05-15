@@ -59,8 +59,8 @@ export default function ProjectsPage() {
           >
             <div className="w-full md:w-1/2 relative aspect-video">
             <Link
-            href={`/Projects/${project.id}`}>
-              {console.log(project)}
+            href={`/Projects/${project.id}?return=${encodeURIComponent('/#projects')}`}>
+              {/* {console.log(project)} */}
               <Image
                   src={
                     project.imageUrl ||

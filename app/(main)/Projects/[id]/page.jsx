@@ -4,12 +4,33 @@ import { useState, useEffect } from "react"
 import Link from "next/link"
 import React from "react"
 import Image from "next/image"
-import { ArrowLeft, ChevronLeft, ChevronRight, Github, Globe, Calendar, Users, Award, Share2, Maximize2, X, Clock, Target, Lightbulb } from 'lucide-react'
+import { useSearchParams } from "next/navigation"
+import {
+  ArrowLeft,
+  ChevronLeft,
+  ChevronRight,
+  Github,
+  Globe,
+  Calendar,
+  Users,
+  Award,
+  Share2,
+  Maximize2,
+  X,
+  Clock,
+  Target,
+  Lightbulb,
+} from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import { getProjectById } from "@/lib/firebase"
 
 export default function ProjectDetailPage({ params }) {
-  const { id: projectId } = React.use(params);
+  const { id: projectId } = React.use(params)
+  const searchParams = useSearchParams()
+  const returnUrl = searchParams.get("return") || "/"
+  // Decode the URL if it contains encoded characters
+  const decodedReturnUrl = decodeURIComponent(returnUrl)
+
   const [project, setProject] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -105,7 +126,7 @@ export default function ProjectDetailPage({ params }) {
   const images = project.imageUrls || (project.imageUrl ? [project.imageUrl] : [])
 
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className="min-h-screen bg-black text-white mt-5">
       {/* Lightbox */}
       <AnimatePresence>
         {lightboxOpen && images.length > 0 && (
@@ -145,14 +166,14 @@ export default function ProjectDetailPage({ params }) {
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.9 }}
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
-              className="relative w-full max-w-5xl h-[80vh] mx-4"
+              className="relative w-full max-w-5xl h-[80vh] mx-4 "
             >
               <Image
                 src={images[currentImageIndex] || "/placeholder.svg"}
                 alt={`${project.title} - Image ${currentImageIndex + 1}`}
                 fill
                 sizes="(max-width: 768px) 100vw, 1200px"
-                className="object-contain"
+                className="object-contain "
                 priority
               />
 
@@ -166,7 +187,7 @@ export default function ProjectDetailPage({ params }) {
 
       <div className="max-w-6xl mx-auto px-4 py-8 md:py-16 space-y-8 md:space-y-12">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <Link href="/projects" className="inline-flex items-center text-sm hover:text-neutral-400 transition-colors">
+          <Link href={returnUrl} className="inline-flex items-center text-sm hover:text-neutral-400 transition-colors">
             <ArrowLeft className="w-4 h-4 mr-2" /> Back to Projects
           </Link>
 
@@ -302,9 +323,10 @@ export default function ProjectDetailPage({ params }) {
                   <button
                     key={index}
                     onClick={() => selectImage(index)}
-                    className={`flex-shrink-0 w-20 h-20 md:w-24 md:h-24 relative rounded-lg overflow-hidden snap-start transition-all duration-200 ${
-                      currentImageIndex === index ? "ring-2 ring-purple-500 scale-105 z-10" : "opacity-70 hover:opacity-100"
-                    }`}
+                    className={`flex-shrink-0 w-20 h-20 md:w-24 md:h-24 relative rounded-lg overflow-hidden snap-start transition-all duration-200 m-4 ${currentImageIndex === index
+                      ? "ring-2 ring-purple-500 scale-105 z-10"
+                      : "opacity-70 hover:opacity-100"
+                      }`}
                   >
                     <Image
                       src={image || "/placeholder.svg"}
@@ -326,44 +348,45 @@ export default function ProjectDetailPage({ params }) {
             <div className="flex overflow-x-auto hide-scrollbar">
               <button
                 onClick={() => setActiveTab("overview")}
-                className={`px-4 py-2 font-medium text-sm whitespace-nowrap ${
-                  activeTab === "overview"
-                    ? "text-white border-b-2 border-purple-500"
-                    : "text-neutral-400 hover:text-white"
-                }`}
+                className={`px-4 py-2 font-medium text-sm whitespace-nowrap ${activeTab === "overview"
+                  ? "text-white border-b-2 border-purple-500"
+                  : "text-neutral-400 hover:text-white"
+                  }`}
               >
                 Overview
               </button>
               {(project.goals || project.outcomes || project.timeline) && (
                 <button
                   onClick={() => setActiveTab("details")}
-                  className={`px-4 py-2 font-medium text-sm whitespace-nowrap ${
-                    activeTab === "details"
-                      ? "text-white border-b-2 border-purple-500"
-                      : "text-neutral-400 hover:text-white"
-                  }`}
+                  className={`px-4 py-2 font-medium text-sm whitespace-nowrap ${activeTab === "details"
+                    ? "text-white border-b-2 border-purple-500"
+                    : "text-neutral-400 hover:text-white"
+                    }`}
                 >
                   Project Details
                 </button>
               )}
-              {project.challenges && project.challenges.length > 0 && project.solutions && project.solutions.length > 0 && (
-                <button
-                  onClick={() => setActiveTab("challenges")}
-                  className={`px-4 py-2 font-medium text-sm whitespace-nowrap ${
-                    activeTab === "challenges"
+              {project.challenges &&
+                project.challenges.length > 0 &&
+                project.solutions &&
+                project.solutions.length > 0 && (
+                  <button
+                    onClick={() => setActiveTab("challenges")}
+                    className={`px-4 py-2 font-medium text-sm whitespace-nowrap ${activeTab === "challenges"
                       ? "text-white border-b-2 border-purple-500"
                       : "text-neutral-400 hover:text-white"
-                  }`}
-                >
-                  Challenges & Solutions
-                </button>
-              )}
+                      }`}
+                  >
+                    Challenges & Solutions
+                  </button>
+                )}
               {project.team && project.team.length > 0 && (
                 <button
                   onClick={() => setActiveTab("team")}
-                  className={`px-4 py-2 font-medium text-sm whitespace-nowrap ${
-                    activeTab === "team" ? "text-white border-b-2 border-purple-500" : "text-neutral-400 hover:text-white"
-                  }`}
+                  className={`px-4 py-2 font-medium text-sm whitespace-nowrap ${activeTab === "team"
+                    ? "text-white border-b-2 border-purple-500"
+                    : "text-neutral-400 hover:text-white"
+                    }`}
                 >
                   Team & Timeline
                 </button>
@@ -469,7 +492,12 @@ export default function ProjectDetailPage({ params }) {
                           className="flex items-start gap-2 bg-neutral-900/50 border border-neutral-800 rounded-lg p-3"
                         >
                           <div className="bg-green-900/30 p-1 rounded mt-0.5">
-                            <svg className="w-3 h-3 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <svg
+                              className="w-3 h-3 text-green-400"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                            >
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                             </svg>
                           </div>

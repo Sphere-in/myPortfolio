@@ -426,7 +426,7 @@ export default function Projects() {
           </CardHeader>
           <CardContent>
             <ScrollArea className="h-[calc(100vh-270px)] ">
-              <form id="projectForm" onSubmit={handleSubmit} className="space-y-6">
+              <form id="projectForm" onSubmit={handleSubmit} className="space-y-6 px-2">
                 <div className="space-y-4">
                   <h3 className="text-lg font-medium">Basic Information</h3>
 

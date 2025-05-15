@@ -58,11 +58,17 @@ export default function AllProjectsPage() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {projects.map((project) => (
-            <Link key={project.id} href={`/projects/${project.id}`} className="group block">
+            <Link key={project.id} href={`/Projects/${project.id}?return=${encodeURIComponent('/Projects/all')}`} className="group block">
               <div className="space-y-4 hover:opacity-90 transition-opacity">
                 <div className="w-full relative aspect-video overflow-hidden rounded-lg">
+                {console.log(project)} 
                   <Image
-                    src={project.imageUrl || "/placeholder.svg?height=300&width=400"}
+                     src={
+                      project.imageUrl ||
+                      (project.imageUrls && project.imageUrls.length > 0
+                        ? project.imageUrls[0]
+                        : "/next.svg?bg=white")
+                    }
                     alt={project.title}
                     fill
                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
