@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { ArrowRight } from "lucide-react"
-import { getProjects } from "@/lib/firebase"
+import { getProjects,  } from "@/lib/firebase"
 
 
 export default function ProjectsPage() {
@@ -59,7 +59,7 @@ export default function ProjectsPage() {
           >
             <div className="w-full md:w-1/2 relative aspect-video">
             <Link
-            href={`/Projects/${project.id}?return=${encodeURIComponent('/#projects')}`}>
+            href={`/Projects/${project.slug}?return=${encodeURIComponent('/#projects')}`}>
               {/* {console.log(project)} */}
               <Image
                   src={

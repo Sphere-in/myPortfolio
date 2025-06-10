@@ -22,7 +22,7 @@ import {
   Lightbulb,
 } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
-import { getProjectById } from "@/lib/firebase"
+import { getProjectById, getProjectBySlug } from "@/lib/firebase"
 
 export default function ProjectDetailPage({ params }) {
   const { id: projectId } = React.use(params)
@@ -42,7 +42,7 @@ export default function ProjectDetailPage({ params }) {
     async function fetchProject() {
       try {
         setIsLoading(true)
-        const fetchedProject = await getProjectById(projectId)
+        const fetchedProject = await getProjectBySlug(projectId)
         if (!fetchedProject) {
           throw new Error("Project not found")
         }
@@ -193,12 +193,15 @@ export default function ProjectDetailPage({ params }) {
 
           <div className="flex items-center gap-3">
             <button
+            
               onClick={() => {
+                const cleanUrl = window.location.origin + window.location.pathname
+
                 if (navigator.share) {
                   navigator.share({
                     title: project.title,
                     text: project.description,
-                    url: window.location.href,
+                    url: cleanUrl,
                   })
                 } else {
                   navigator.clipboard.writeText(window.location.href)

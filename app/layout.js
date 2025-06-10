@@ -1,6 +1,6 @@
 import { AuthProvider } from "../contexts/AuthContext"
 import "./globals.css"
-import { Toaster } from "@/components/ui/toaster"
+import { Toaster } from "@/components/ui/sonner"
 
 export const metadata = {
   title: "IaMRaihan",
@@ -13,7 +13,7 @@ export default function RootLayout({ children }) {
       <body className="text-white h-screen m-0 p-0 bg-black" suppressHydrationWarning>
         <AuthProvider>
           {children}
-          <Toaster position="top-center" richColors closeButton />
+          <Toaster position="top-center" richColors closeButton={true} />
         </AuthProvider>
       </body>
     </html>

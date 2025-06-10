@@ -7,10 +7,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner"
-
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { db } from "@/lib/firebase";
 import { collection, addDoc } from "firebase/firestore";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 export default function ContactForm() {
   const [formData, setFormData] = useState({
@@ -57,9 +56,8 @@ export default function ContactForm() {
           }),
         });
 
-        if ( docRef.id) {
+        if ( docRef.id || response.ok) {
           toast.success("We'll get back to you as soon as possible.")
-
           setFormData({ name: "", email: "", company: "", message: "" });
         } else {
           throw new Error("Failed to send message or save submission.");

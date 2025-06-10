@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { adminDb, adminAuth, verifyAdminUser } from "@/lib/firebase-admin"
+// import { c } from "framer-motion/dist/types.d-6pKw1mTI"
 
 export async function DELETE(request, { params }) {
   try {
@@ -7,6 +8,7 @@ export async function DELETE(request, { params }) {
     const authHeader = request.headers.get("Authorization")
 
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      console.log("Unauthorized access attempt")
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
@@ -20,14 +22,16 @@ export async function DELETE(request, { params }) {
     const isAdmin = await verifyAdminUser(uid)
 
     if (!isAdmin) {
+      console.log("Insufficient Permission")
       return NextResponse.json({ error: "Insufficient permissions" }, { status: 403 })
     }
 
     // Delete the submission
     await adminDb.collection("Submissions").doc(id).delete()
-
+    console.log("Submission deleted successfully:", id)
     return NextResponse.json({ success: true, message: "Submission deleted successfully" })
   } catch (error) {
+    console.log("Error deleting submission:", error)
     console.error("Delete submission error:", error)
     return NextResponse.json({ error: error.message || "Internal server error" }, { status: 500 })
   }

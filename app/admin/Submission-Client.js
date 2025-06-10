@@ -94,7 +94,7 @@ export default function SubmissionsClient() {
       })
 
       if (!response.ok) {
-        throw new Error("Failed to delete submission")
+        throw new Error("Failed to delete submission", response.statusText)
       }
 
       setSubmissions(submissions.filter((sub) => sub.id !== id))

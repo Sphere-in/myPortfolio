@@ -28,6 +28,7 @@ import { toast } from "sonner"
 export default function Projects() {
   const [projectData, setProjectData] = useState({
     title: "",
+    slug: "",
     subtitle: "",
     description: "",
     longDescription: "",
@@ -65,6 +66,7 @@ export default function Projects() {
   const [projectToDelete, setProjectToDelete] = useState(null)
   const [showAdvanced, setShowAdvanced] = useState(false)
   const [originalProjectData, setOriginalProjectData] = useState(null) // Store original data for cancel functionality
+  const [isSlugManuallyEdited, setIsSlugManuallyEdited] = useState(false) // Track if slug was manually edited
   const router = useRouter()
 
   useEffect(() => {
@@ -80,6 +82,17 @@ export default function Projects() {
     }
     initAuth()
   }, [])
+
+  // Auto-generate slug when title changes (only if slug hasn't been manually edited)
+  useEffect(() => {
+    if (projectData.title && !isSlugManuallyEdited) {
+      const generatedSlug = generateSlug(projectData.title)
+      setProjectData(prev => ({
+        ...prev,
+        slug: generatedSlug
+      }))
+    }
+  }, [projectData.title, isSlugManuallyEdited])
 
   const fetchProjects = async () => {
     try {
@@ -97,6 +110,11 @@ export default function Projects() {
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target
+
+    // Track if slug is being manually edited
+    if (name === "slug") {
+      setIsSlugManuallyEdited(true)
+    }
 
     if (name.includes(".")) {
       // Handle nested properties like timeline.start
@@ -266,6 +284,11 @@ export default function Projects() {
         throw new Error("Title and description are required.")
       }
 
+      // Ensure slug exists, if not generate it
+      if (!cleanedData.slug || cleanedData.slug.trim() === "") {
+        cleanedData.slug = generateSlug(cleanedData.title)
+      }
+
       // Ensure imageUrls is always an array
       if (!Array.isArray(cleanedData.imageUrls)) {
         cleanedData.imageUrls = []
@@ -304,6 +327,7 @@ export default function Projects() {
   const resetForm = () => {
     setProjectData({
       title: "",
+      slug: "",
       subtitle: "",
       description: "",
       longDescription: "",
@@ -333,6 +357,7 @@ export default function Projects() {
     setEditingId(null)
     setOriginalProjectData(null)
     setShowAdvanced(false)
+    setIsSlugManuallyEdited(false)
   }
 
   // Cancel editing and restore original data
@@ -346,6 +371,7 @@ export default function Projects() {
     }
     setEditingId(null)
     setOriginalProjectData(null)
+    setIsSlugManuallyEdited(false)
     toast.info("Editing cancelled")
   }
 
@@ -353,6 +379,7 @@ export default function Projects() {
     // Store the original project data for cancel functionality
     const preparedProject = {
       ...project,
+      slug: project.slug || "",
       subtitle: project.subtitle || "",
       longDescription: project.longDescription || "",
       liveLink: project.liveLink || "",
@@ -374,6 +401,7 @@ export default function Projects() {
     setOriginalProjectData({ ...preparedProject })
     setProjectData(preparedProject)
     setEditingId(project.id)
+    setIsSlugManuallyEdited(!!project.slug) // If project has a slug, consider it manually edited
     toast.info("Editing project: " + project.title)
   }
 
@@ -387,6 +415,29 @@ export default function Projects() {
       console.error("Error deleting project:", error)
       setError(error.message)
       toast.error("Failed to delete project")
+    }
+  }
+
+  const generateSlug = (title) => {
+    if (!title || typeof title !== 'string') return ""
+    
+    return title
+      .toLowerCase()
+      .trim()
+      .replace(/[^\w\s-]/g, "") // Remove special characters except spaces and hyphens
+      .replace(/[\s_-]+/g, "-") // Replace spaces, underscores, and multiple hyphens with single hyphen
+      .replace(/^-+|-+$/g, "") // Remove leading and trailing hyphens
+  }
+
+  const handleRegenerateSlug = () => {
+    if (projectData.title) {
+      const newSlug = generateSlug(projectData.title)
+      setProjectData(prev => ({
+        ...prev,
+        slug: newSlug
+      }))
+      setIsSlugManuallyEdited(false)
+      toast.success("Slug regenerated from title")
     }
   }
 
@@ -440,6 +491,32 @@ export default function Projects() {
                       <Label htmlFor="subtitle">Subtitle</Label>
                       <Input id="subtitle" name="subtitle" value={projectData.subtitle} onChange={handleChange} />
                     </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="slug">Slug</Label>
+                    <div className="flex gap-2">
+                      <Input 
+                        id="slug" 
+                        name="slug" 
+                        value={projectData.slug} 
+                        onChange={handleChange}
+                        placeholder="URL-friendly version of the title"
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={handleRegenerateSlug}
+                        disabled={!projectData.title}
+                        className="whitespace-nowrap"
+                      >
+                        Regenerate
+                      </Button>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      The slug is automatically generated from the title. You can edit it manually if needed.
+                    </p>
                   </div>
 
                   <div className="space-y-2">

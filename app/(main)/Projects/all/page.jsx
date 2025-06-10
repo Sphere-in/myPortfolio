@@ -58,7 +58,7 @@ export default function AllProjectsPage() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {projects.map((project) => (
-            <Link key={project.id} href={`/Projects/${project.id}?return=${encodeURIComponent('/Projects/all')}`} className="group block">
+            <Link key={project.id} href={`/Projects/${project.slug}?return=${encodeURIComponent('/Projects/all')}`} className="group block">
               <div className="space-y-4 hover:opacity-90 transition-opacity">
                 <div className="w-full relative aspect-video overflow-hidden rounded-lg">
                 {console.log(project)} 
