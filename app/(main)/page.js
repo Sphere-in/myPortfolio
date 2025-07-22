@@ -1,4 +1,3 @@
-"use client";
 
 import Start from "./Start/page";
 import Component from "./About/page";

@@ -17,6 +17,7 @@ export default function ProjectsPage() {
       try {
         setIsLoading(true)
         const fetchedProjects = await getProjects()
+        
         setProjects(fetchedProjects)
       } catch (error) {
         console.error("Error fetching projects:", error)
@@ -50,7 +51,10 @@ export default function ProjectsPage() {
   return (
     <div className="min-h-screen bg-black text-white">
       <div className="max-w-7xl mx-auto px-4 py-16 space-y-32">
-        {projects.map((project, index) => (
+        {projects
+        .filter((project) => project.display !== false)
+        .map((project, index) => (
+          
           <div
             key={project.id}
             className={`flex flex-col ${
@@ -97,7 +101,7 @@ export default function ProjectsPage() {
                   GitHub <ArrowRight className="w-4 h-4" />
                 </Link>
 
-                {index === projects.length - 1 && (
+                {/* {index === projects.length - 1 && (
                   <Link
                     // href={`/projects/${project.id}`}
                     href={`Projects/all`}
@@ -105,13 +109,22 @@ export default function ProjectsPage() {
                   >
                     Show more <ArrowRight className="w-4 h-4" />
                   </Link>
-                )}
+                )} */}
               </div>
             </div>
           </div>
         ))}
       </div>
       {projects.length === 0 && <p className="text-center text-xl mt-12">No projects added yet.</p>}
+      <div className="max-w-7xl mx-auto px-4 py-16 flex items-center justify-center">
+        <Link
+          href="/Projects/all"
+          className="group flex items-center gap-3 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 px-8 py-4 rounded-lg transition-all duration-300 hover:scale-105"
+        >
+          <span className="text-white font-medium">View All Projects</span>
+          <ArrowRight className="w-5 h-5 text-neutral-400 group-hover:text-white group-hover:translate-x-1 transition-all duration-300" />
+        </Link>
+      </div>
     </div>
   )
 }

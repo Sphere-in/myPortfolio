@@ -24,7 +24,7 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Edit, Trash2, Save, Plus, Calendar, Github, Code, Eye, EyeOff, ChevronDown, ChevronUp, Users, Target, Award, Lightbulb, X } from 'lucide-react'
 import { toast } from "sonner"
-
+import { getAuth } from "firebase/auth"
 export default function Projects() {
   const [projectData, setProjectData] = useState({
     title: "",
@@ -40,12 +40,14 @@ export default function Projects() {
     endDate: "",
     imageUrls: [],
     display: true,
+    position: 0,
     // Advanced fields
     challenges: [],
     solutions: [],
     goals: [],
     outcomes: [],
     team: [],
+
     timeline: {
       start: "",
       end: "",
@@ -67,13 +69,19 @@ export default function Projects() {
   const [showAdvanced, setShowAdvanced] = useState(false)
   const [originalProjectData, setOriginalProjectData] = useState(null) // Store original data for cancel functionality
   const [isSlugManuallyEdited, setIsSlugManuallyEdited] = useState(false) // Track if slug was manually edited
+  const [token, setToken] = useState(null)
   const router = useRouter()
-
+  const auth = getAuth()
   useEffect(() => {
     const initAuth = async () => {
       try {
         await ensureAuth()
         fetchProjects()
+        const currentUser = auth.currentUser
+        if (!currentUser) {
+          throw new Error("You must be logged in")
+        }
+        setToken(currentUser.getIdToken())
       } catch (error) {
         console.error("Error initializing auth:", error)
         setError("Failed to authenticate. Please try again.")
@@ -82,6 +90,10 @@ export default function Projects() {
     }
     initAuth()
   }, [])
+
+
+
+  // const token = currentUser.getIdToken()
 
   // Auto-generate slug when title changes (only if slug hasn't been manually edited)
   useEffect(() => {
@@ -109,30 +121,38 @@ export default function Projects() {
   }
 
   const handleChange = (e) => {
-    const { name, value, type, checked } = e.target
+    const { name, value, type, checked } = e.target;
 
     // Track if slug is being manually edited
     if (name === "slug") {
-      setIsSlugManuallyEdited(true)
+      setIsSlugManuallyEdited(true);
     }
 
+    // Handle nested properties like timeline.start
     if (name.includes(".")) {
-      // Handle nested properties like timeline.start
-      const [parent, child] = name.split(".")
+      const [parent, child] = name.split(".");
       setProjectData((prevData) => ({
         ...prevData,
         [parent]: {
           ...prevData[parent],
           [child]: type === "checkbox" ? checked : value,
         },
-      }))
+      }));
+    } else if (name === "position") {
+      // Ensure position is stored as a number
+      setProjectData((prevData) => ({
+        ...prevData,
+        position: value === "" ? "" : parseInt(value) || 0,
+      }));
     } else {
+      // Regular top-level fields
       setProjectData((prevData) => ({
         ...prevData,
         [name]: type === "checkbox" ? checked : value,
-      }))
+      }));
     }
-  }
+  };
+
 
   const handleArrayChange = (index, field, value) => {
     setProjectData((prevData) => {
@@ -228,20 +248,20 @@ export default function Projects() {
       // Clean up empty arrays to prevent Firebase issues
       const cleanedData = { ...projectData }
 
-      // Convert empty arrays to empty objects for Firebase
-      ;["challenges", "solutions", "goals", "outcomes"].forEach((field) => {
-        if (Array.isArray(cleanedData[field])) {
-          // Filter out empty strings
-          cleanedData[field] = cleanedData[field].filter((item) => item && item.trim() !== "")
-          // If array is empty after filtering, set to empty array explicitly
-          if (cleanedData[field].length === 0) {
+        // Convert empty arrays to empty objects for Firebase
+        ;["challenges", "solutions", "goals", "outcomes"].forEach((field) => {
+          if (Array.isArray(cleanedData[field])) {
+            // Filter out empty strings
+            cleanedData[field] = cleanedData[field].filter((item) => item && item.trim() !== "")
+            // If array is empty after filtering, set to empty array explicitly
+            if (cleanedData[field].length === 0) {
+              cleanedData[field] = []
+            }
+          } else if (!cleanedData[field]) {
+            // Ensure the field exists
             cleanedData[field] = []
           }
-        } else if (!cleanedData[field]) {
-          // Ensure the field exists
-          cleanedData[field] = []
-        }
-      })
+        })
 
       // Clean team array
       if (Array.isArray(cleanedData.team)) {
@@ -328,6 +348,7 @@ export default function Projects() {
     setProjectData({
       title: "",
       slug: "",
+      position:0,
       subtitle: "",
       description: "",
       longDescription: "",
@@ -420,7 +441,7 @@ export default function Projects() {
 
   const generateSlug = (title) => {
     if (!title || typeof title !== 'string') return ""
-    
+
     return title
       .toLowerCase()
       .trim()
@@ -492,31 +513,51 @@ export default function Projects() {
                       <Input id="subtitle" name="subtitle" value={projectData.subtitle} onChange={handleChange} />
                     </div>
                   </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
-                  <div className="space-y-2">
-                    <Label htmlFor="slug">Slug</Label>
-                    <div className="flex gap-2">
-                      <Input 
-                        id="slug" 
-                        name="slug" 
-                        value={projectData.slug} 
-                        onChange={handleChange}
-                        placeholder="URL-friendly version of the title"
-                      />
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={handleRegenerateSlug}
-                        disabled={!projectData.title}
-                        className="whitespace-nowrap"
-                      >
-                        Regenerate
-                      </Button>
+                    <div className="space-y-2">
+                      <Label htmlFor="slug">Slug</Label>
+                      <div className="flex gap-2">
+                        <Input
+                          id="slug"
+                          name="slug"
+                          value={projectData.slug}
+                          onChange={handleChange}
+                          placeholder="URL-friendly version of the title"
+                        />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={handleRegenerateSlug}
+                          disabled={!projectData.title}
+                          className="whitespace-nowrap"
+                        >
+                          Regenerate
+                        </Button>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        The slug is automatically generated from the title. You can edit it manually if needed.
+                      </p>
                     </div>
-                    <p className="text-xs text-muted-foreground">
-                      The slug is automatically generated from the title. You can edit it manually if needed.
-                    </p>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="position">Position</Label>
+                      <div className="flex gap-2">
+                        <Input
+                          id="position"
+                          name="position"
+                          value={projectData.position?.toString() ?? ""}
+                          onChange={handleChange}
+                          placeholder="0 for start at bottom, high no for top."
+                        />
+
+
+
+                      </div>
+
+                    </div>
+
                   </div>
 
                   <div className="space-y-2">
@@ -983,11 +1024,10 @@ export default function Projects() {
                           </div>
                         ) : null}
                         <div
-                          className={`flex-1 p-4 ${
-                            (project.imageUrls && project.imageUrls.length > 0) || project.imageUrl
-                              ? "md:w-3/4"
-                              : "w-full"
-                          }`}
+                          className={`flex-1 p-4 ${(project.imageUrls && project.imageUrls.length > 0) || project.imageUrl
+                            ? "md:w-3/4"
+                            : "w-full"
+                            }`}
                         >
                           <div className="flex justify-between items-start">
                             <div>
