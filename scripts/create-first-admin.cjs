@@ -2,7 +2,6 @@ const { cert, getApps, initializeApp } = require("firebase-admin/app")
 const { getAuth } = require("firebase-admin/auth")
 const { getServiceAccount } = require("../lib/firebase-credentials.cjs")
 require("dotenv").config({ quiet: true })
-
 async function createFirstAdmin() {
   const email = process.env.INITIAL_ADMIN_EMAIL
   if (!email) throw new Error("Set INITIAL_ADMIN_EMAIL before running this script")
