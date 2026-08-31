@@ -18,19 +18,19 @@ export default function ContactInfo() {
   };
 
   return (
-    <div className="w-full lg:w-2/5 bg-black/50 backdrop-blur-sm p-6 rounded-xl">
-      <h2 className="text-3xl font-bold text-white mb-6">Contact Information</h2>
+    <div className="w-full rounded-3xl border border-white/10 bg-white/[0.04] p-5 backdrop-blur-sm sm:p-7 lg:w-[22rem]">
+      <h2 className="mb-6 text-2xl font-bold text-white">Contact information</h2>
       <div className="space-y-4 mb-10">
         <div className="flex items-center gap-3">
           <User className="h-5 w-5 text-gray-200" />
-          <span className="text-white">Mohammad Raihan Shaikh</span>
+          <span className="min-w-0 break-words text-white">Mohammad Raihan Shaikh</span>
         </div>
         <div
           className="flex items-center gap-3 cursor-pointer group"
           onClick={() => copyToClipboard('shkmraihan@gmail.com')}
         >
           <Mail className="h-5 w-5 text-gray-200" />
-          <span className="text-white group-hover:text-green-400 transition-colors">
+          <span className="min-w-0 break-all text-white transition-colors group-hover:text-green-400">
             shkmraihan@gmail.com
           </span>
           <div className="relative">

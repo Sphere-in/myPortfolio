@@ -48,8 +48,8 @@ export default function AllProjectsPage() {
 
   return (
     <div className="min-h-screen bg-black text-white">
-      <div className="max-w-7xl mx-auto px-4 py-16 space-y-12">
-        <div className="flex justify-between items-center">
+      <div className="mx-auto max-w-7xl space-y-10 px-4 pb-16 pt-24 sm:px-6 lg:px-8">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <Link href="/" className="inline-flex items-center text-sm hover:text-neutral-400 transition-colors">
             <ArrowLeft className="w-4 h-4 mr-2" /> Back to Projects
           </Link>
@@ -57,11 +57,10 @@ export default function AllProjectsPage() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {projects.map((project) => (
+          {projects.filter((project) => project.display !== false).map((project) => (
             <Link key={project.id} href={`/Projects/${project.slug}?return=${encodeURIComponent('/Projects/all')}`} className="group block">
               <div className="space-y-4 hover:opacity-90 transition-opacity">
                 <div className="w-full relative aspect-video overflow-hidden rounded-lg">
-                {console.log(project)} 
                   <Image
                      src={
                       project.imageUrl ||

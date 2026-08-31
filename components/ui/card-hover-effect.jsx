@@ -74,10 +74,10 @@ export const Card = ({
   return (
     <motion.div
       className={cn(
-        "rounded-lg p-3 sm:p-4 bg-card text-card-foreground shadow-lg relative z-20",
+        "rounded-xl border border-slate-700 p-3 sm:p-4 bg-card text-card-foreground shadow-lg relative z-20",
         "transition-all duration-300 ease-in-out",
-        "hover:shadow-xl hover:-translate-y-1 bg-black cursor-pointer",
-        "h-32 sm:h-36 md:h-40 w-full",
+        "hover:border-teal-300/50 hover:shadow-xl hover:-translate-y-1 bg-slate-950 cursor-pointer",
+        "min-h-40 sm:min-h-44 w-full",
         className,
       )}
       whileHover={{ scale: 1.02 }}
@@ -111,7 +111,7 @@ export const CardDescription = ({
   return (
     <p
       className={cn(
-        "text-xs sm:text-sm text-slate-500 line-clamp-2 sm:line-clamp-3",
+        "text-xs sm:text-sm text-slate-300 line-clamp-2 sm:line-clamp-3",
         "transition-colors duration-300 ease-in-out",
         "group-hover:text-slate-300",
         className,
@@ -130,9 +130,9 @@ export const CardBadge = ({
     <Badge
       variant="outline"
       className={cn(
-        "text-xs mt-2 sm:mt-3 bg-white/90 backdrop-blur-sm",
+        "mt-3 border-emerald-300/60 bg-emerald-300/15 text-xs font-semibold text-emerald-200 shadow-sm backdrop-blur-sm",
         "transition-all duration-300 ease-in-out",
-        "group-hover:bg-black group-hover:text-white",
+        "group-hover:border-emerald-200 group-hover:bg-emerald-300 group-hover:text-slate-950",
         className,
       )}
     >

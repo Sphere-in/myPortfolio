@@ -9,7 +9,7 @@ import {
   ArrowLeft,
   ChevronLeft,
   ChevronRight,
-  Github,
+  GitBranch,
   Globe,
   Calendar,
   Users,
@@ -30,6 +30,7 @@ export default function ProjectDetailPage({ params }) {
   const returnUrl = searchParams.get("return") || "/"
   // Decode the URL if it contains encoded characters
   const decodedReturnUrl = decodeURIComponent(returnUrl)
+  const safeReturnUrl = decodedReturnUrl.startsWith("/") && !decodedReturnUrl.startsWith("//") ? decodedReturnUrl : "/#projects"
 
   const [project, setProject] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -77,19 +78,19 @@ export default function ProjectDetailPage({ params }) {
     setCurrentImageIndex(index)
   }
 
-  // Handle keyboard navigation
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (lightboxOpen) {
-        if (e.key === "ArrowRight") nextImage()
-        if (e.key === "ArrowLeft") prevImage()
+        const imageCount = project?.imageUrls?.length || (project?.imageUrl ? 1 : 0)
+        if (e.key === "ArrowRight" && imageCount > 0) setCurrentImageIndex((current) => current === imageCount - 1 ? 0 : current + 1)
+        if (e.key === "ArrowLeft" && imageCount > 0) setCurrentImageIndex((current) => current === 0 ? imageCount - 1 : current - 1)
         if (e.key === "Escape") setLightboxOpen(false)
       }
     }
 
     window.addEventListener("keydown", handleKeyDown)
     return () => window.removeEventListener("keydown", handleKeyDown)
-  }, [lightboxOpen])
+  }, [lightboxOpen, project])
 
   if (isLoading) {
     return (
@@ -187,7 +188,7 @@ export default function ProjectDetailPage({ params }) {
 
       <div className="max-w-6xl mx-auto px-4 py-8 md:py-16 space-y-8 md:space-y-12">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <Link href={returnUrl} className="inline-flex items-center text-sm hover:text-neutral-400 transition-colors">
+          <Link href={safeReturnUrl} className="inline-flex items-center text-sm hover:text-neutral-400 transition-colors">
             <ArrowLeft className="w-4 h-4 mr-2" /> Back to Projects
           </Link>
 
@@ -220,7 +221,7 @@ export default function ProjectDetailPage({ params }) {
                 rel="noopener noreferrer"
                 className="flex items-center gap-2 text-sm bg-neutral-800 hover:bg-neutral-700 px-3 py-1.5 rounded-full transition-colors"
               >
-                <Github className="w-4 h-4" /> GitHub
+                <GitBranch className="w-4 h-4" /> GitHub
               </Link>
             )}
 
@@ -419,7 +420,7 @@ export default function ProjectDetailPage({ params }) {
                   <div className="bg-neutral-900/50 border border-neutral-800 rounded-xl p-6 my-8">
                     <div className="flex flex-col space-y-4">
                       <div className="text-neutral-300 italic text-lg leading-relaxed">
-                        "{project.testimonial.text}"
+                        &ldquo;{project.testimonial.text}&rdquo;
                       </div>
                       <div className="text-sm text-neutral-400">— {project.testimonial.author}</div>
                     </div>
@@ -719,7 +720,7 @@ export default function ProjectDetailPage({ params }) {
               rel="noopener noreferrer"
               className="flex items-center gap-2 text-sm bg-white text-black px-6 py-3 rounded-lg hover:bg-neutral-200 transition-colors"
             >
-              <Github className="w-5 h-5" /> GitHub Repository
+              <GitBranch className="w-5 h-5" /> GitHub Repository
             </Link>
           )}
 

@@ -30,16 +30,16 @@ const ImageSlider = () => {
   );
 
   return (
-    <div className="relative overflow-hidden w-full h-auto mx-auto mt-8">
-      <div className="flex animate-scroll  space-x-8 items-center">
+    <div className="relative mx-auto mt-8 w-full overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]">
+      <div className="flex w-max animate-scroll items-center gap-5 sm:gap-8">
         {ImageSliderList.map((item, index) => (
           <Image
             key={index}
             src={`${item.src}.png`}
-            width={80}
-            height={80}
+            width={72}
+            height={72}
             alt={`Image ${index + 1}`}
-            className="rounded-lg shadow-lg"
+            className="h-14 w-14 rounded-xl object-contain shadow-lg sm:h-[72px] sm:w-[72px]"
           />
         ))}
         {/* Repeat the list to create a seamless loop */}
@@ -47,10 +47,10 @@ const ImageSlider = () => {
           <Image
             key={`repeat-${index}`}
             src={`${item.src}.png`}
-            width={80}
-            height={80}
+            width={72}
+            height={72}
             alt={`Image Repeat ${index + 1}`}
-            className="rounded-lg shadow-lg"
+            className="h-14 w-14 rounded-xl object-contain shadow-lg sm:h-[72px] sm:w-[72px]"
           />
         ))}
       </div>

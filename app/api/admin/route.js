@@ -1,44 +1,23 @@
-import { adminAuth, verifyAdminUser, setAdminClaim } from "@/lib/firebase-admin"
 import { NextResponse } from "next/server"
+import { createOrPromoteAdmin, requireAdmin } from "@/lib/firebase-admin"
+
+const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
 export async function POST(request) {
   try {
-    const { action, email, idToken } = await request.json()
-
-    if (!idToken) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
-
-    // Verify the ID token
-    const decodedToken = await adminAuth.verifyIdToken(idToken)
-    const uid = decodedToken.uid
-
-    // Check if the user is an admin
-    const isAdmin = await verifyAdminUser(uid)
-
-    if (!isAdmin) {
-      return NextResponse.json({ error: "Insufficient permissions" }, { status: 403 })
-    }
-
-    // Handle different admin actions
-    switch (action) {
-      case "setAdmin":
-        if (!email) {
-          return NextResponse.json({ error: "Email is required" }, { status: 400 })
-        }
-
-        const success = await setAdminClaim(email)
-
-        if (success) {
-          return NextResponse.json({ success: true, message: "Admin privileges granted" })
-        } else {
-          return NextResponse.json({ error: "Failed to set admin claim" }, { status: 500 })
-        }
-
-      default:
-        return NextResponse.json({ error: "Invalid action" }, { status: 400 })
-    }
+    await requireAdmin(request)
+    const { email, password, displayName } = await request.json()
+    const normalizedEmail = String(email || "").trim().toLowerCase()
+    if (!emailPattern.test(normalizedEmail)) return NextResponse.json({ error: "Enter a valid email address" }, { status: 400 })
+    const result = await createOrPromoteAdmin({
+      email: normalizedEmail,
+      password: password ? String(password) : undefined,
+      displayName: String(displayName || "").trim().slice(0, 100),
+    })
+    return NextResponse.json({ ...result, message: result.created ? "Administrator account created" : "Existing user promoted to administrator" })
   } catch (error) {
-    console.error("Admin API error:", error)
-    return NextResponse.json({ error: error.message || "Internal server error" }, { status: 500 })
+    const message = error.code === "auth/invalid-password" ? "The password does not meet your Firebase Authentication password policy" : error.message
+    const status = error.status || (error.code?.startsWith("auth/") ? 400 : 500)
+    return NextResponse.json({ error: message || "Unable to create administrator" }, { status })
   }
 }

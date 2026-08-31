@@ -121,8 +121,8 @@ const Skills = () => {
         <h2 className="text-xl sm:text-3xl font-extrabold text-white mb-4 sm:mb-8">Technical Skills</h2>
         
         {/* Category Filter */}
-        <div className="flex overflow-x-auto py-2 mb-4 -mx-3 px-3 scrollbar-thin scrollbar-track-transparent">
-          <div className="flex space-x-2">
+        <div className="-mx-3 mb-5 overflow-x-auto px-3 py-2 scrollbar-thin scrollbar-track-transparent" aria-label="Filter technical skills">
+          <div className="flex gap-2">
             {categories.map((category) => (
               <button
                 key={category}
@@ -130,10 +130,11 @@ const Skills = () => {
                   setActiveCategory(category)
                   setCurrentPage(0)
                 }}
-                className={`px-3 py-1 text-sm rounded-full whitespace-nowrap ${
+                aria-pressed={activeCategory === category}
+                className={`whitespace-nowrap rounded-full border px-3.5 py-1.5 text-sm font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-300 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 ${
                   activeCategory === category
-                    ? "bg-primary text-white"
-                    : "bg-gray-800 text-gray-300 hover:bg-gray-700"
+                    ? "border-teal-300 bg-teal-300 text-slate-950 shadow-[0_0_18px_rgba(94,234,212,0.22)]"
+                    : "border-slate-600 bg-slate-900 text-slate-200 hover:border-teal-300/70 hover:bg-slate-800 hover:text-white"
                 }`}
               >
                 {category}

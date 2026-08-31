@@ -1,64 +1,46 @@
-import { NextResponse } from "next/server" 
-import { adminDb } from "@/lib/firebase-admin"
+import { NextResponse } from "next/server"
+import { adminDb, requireAdmin } from "@/lib/firebase-admin"
+import { sendPortfolioEmail } from "@/lib/email"
+import { checkRateLimit } from "@/lib/rate-limit"
+
+export const dynamic = "force-dynamic"
+export const revalidate = 0
+
+const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+const text = (value, max) => String(value || "").trim().slice(0, max)
 
 export async function POST(request) {
   try {
-    const { name, email, company, subject, message } = await request.json()
-
-    // Validate required fields
-    if (!name || !email || !message) {
-      return NextResponse.json({ error: "Name, email, and message are required" }, { status: 400 })
-    }
-
-    // Create a new submission in Firestore
-    const submissionRef = adminDb.collection("Submissions").doc()
-    await submissionRef.set({
-      name,
-      email,
-      company: company || "",
-      subject: subject || "Contact Form Submission",
-      message,
+    const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown"
+    if (!checkRateLimit(`contact:${ip}`)) return NextResponse.json({ error: "Too many messages. Please try again later." }, { status: 429 })
+    const body = await request.json()
+    const submission = {
+      name: text(body.name, 100),
+      email: text(body.email, 254).toLowerCase(),
+      company: text(body.company, 150),
+      subject: text(body.subject, 180) || "Portfolio contact form",
+      message: text(body.message, 5000),
       timestamp: new Date().toISOString(),
       read: false,
-    })
-
-    return NextResponse.json({
-      success: true,
-      id: submissionRef.id,
-      message: "Submission received successfully",
-    })
+    }
+    if (!submission.name || !emailPattern.test(submission.email) || submission.message.length < 10) return NextResponse.json({ error: "Enter a valid name, email, and message" }, { status: 400 })
+    const reference = await adminDb.collection("Submissions").add(submission)
+    await sendPortfolioEmail({ replyTo: submission.email, subject: `Portfolio: ${submission.subject}`, text: `From: ${submission.name} <${submission.email}>\nCompany: ${submission.company || "Not provided"}\n\n${submission.message}` }).catch((error) => console.error("Contact email notification failed:", error))
+    return NextResponse.json({ success: true, id: reference.id }, { status: 201, headers: { "Cache-Control": "no-store" } })
   } catch (error) {
-    console.error("Contact API error:", error)
-    return NextResponse.json({ error: error.message || "Internal server error" }, { status: 500 })
+    return NextResponse.json({ error: "Unable to send your message right now" }, { status: 500 })
   }
 }
 
 export async function GET(request) {
   try {
-    // Get the authorization token from the request
-    const authHeader = request.headers.get("Authorization")
-
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
-
-    const idToken = authHeader.split("Bearer ")[1]
-
-    // Verify the token and admin status (implementation in firebase-admin.ts)
-    // This is a simplified example - you should implement proper verification
-
-    // Get submissions from Firestore
-    const submissionsRef = adminDb.collection("Submissions")
-    const snapshot = await submissionsRef.orderBy("timestamp", "desc").get()
-
-    const submissions = snapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-    }))
-
-    return NextResponse.json({ submissions })
+    await requireAdmin(request)
+    const snapshot = await adminDb.collection("Submissions").orderBy("timestamp", "desc").limit(250).get()
+    return NextResponse.json(
+      { submissions: snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })) },
+      { headers: { "Cache-Control": "no-store, max-age=0" } },
+    )
   } catch (error) {
-    console.error("Get submissions error:", error)
-    return NextResponse.json({ error: error.message || "Internal server error" }, { status: 500 })
+    return NextResponse.json({ error: error.message || "Unable to load submissions" }, { status: error.status || 500 })
   }
 }

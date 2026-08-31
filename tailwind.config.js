@@ -35,11 +35,11 @@ module.exports = {
 		keyframes: {
 			scroll: {
 			  '0%': { transform: 'translateX(0)' },
-			  '100%': { transform: 'translateX(-100%)' },
+			  '100%': { transform: 'translateX(calc(-50% - 1rem))' },
 			},
 		  },
 		animation: {
-			scroll: 'scroll 10s linear infinite',
+			scroll: 'scroll 28s linear infinite',
 		},
 
   		colors: {

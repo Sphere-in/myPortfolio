@@ -1,34 +1,17 @@
-import nodemailer from "nodemailer";
+import { NextResponse } from "next/server"
+import { requireAdmin } from "@/lib/firebase-admin"
+import { sendPortfolioEmail } from "@/lib/email"
 
-export async function POST(req) {
+export async function POST(request) {
   try {
-    const { name, email, subject, message, to } = await req.json();
-
-    // Create a transporter with your email credentials
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-      },
-    });
-
-    // Define the email options
-    const mailOptions = {
-      from: process.env.EMAIL_USER,
-      to: to || process.env.EMAIL_USER, // Send to the specified recipient or default to admin email
-      subject: subject || "No Subject",
-      text: `Message from ${name} (${email || "shkmraihan@gmail.com"}):\n\n${message}`,
-    };
-
-    // Send the email
-    await transporter.sendMail(mailOptions);
-
-    // Return success response
-    return new Response(JSON.stringify({ success: true }), { status: 200 });
+    const admin = await requireAdmin(request)
+    const { subject, message, to } = await request.json()
+    const recipient = String(to || "").trim().slice(0, 254)
+    const body = String(message || "").trim().slice(0, 10000)
+    if (!recipient || !body) return NextResponse.json({ error: "Recipient and message are required" }, { status: 400 })
+    await sendPortfolioEmail({ to: recipient, replyTo: admin.email, subject: String(subject || "Portfolio reply").slice(0, 180), text: body })
+    return NextResponse.json({ success: true })
   } catch (error) {
-    console.error("Email sending error:", error);
-    return new Response(JSON.stringify({ success: false, error: error.message }), { status: 500 });
+    return NextResponse.json({ error: error.message || "Unable to send email" }, { status: error.status || 500 })
   }
 }
-

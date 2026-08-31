@@ -12,7 +12,7 @@ const AuthContext = createContext({
   isAuthenticated: false,
   isAdmin: false,
   isLoading: true,
-  login: async () => false,
+  login: async () => ({ success: false, error: "Login failed" }),
   logout: async () => {},
 })
 
@@ -46,7 +46,7 @@ export const AuthProvider = ({ children }) => {
     return () => unsubscribe()
   }, [])
 
-  const login = async (email, password)=> {
+  const login = async (email, password) => {
     try {
       const user = await loginWithEmailAndPassword(email, password)
       const idTokenResult = await user.getIdTokenResult(true)
@@ -54,15 +54,23 @@ export const AuthProvider = ({ children }) => {
       if (!idTokenResult.claims.admin) {
         await logoutUser()
         toast.error("You don't have admin privileges")
-        return false
+        return { success: false, error: "This Firebase user does not have the admin claim." }
       }
 
       toast.success("Logged in successfully")
-      return true
+      return { success: true }
     } catch (error) {
       console.error("Login error:", error)
-      toast.error(error.message || "Login failed")
-      return false
+      const messages = {
+        "auth/invalid-credential": "No Firebase Authentication user matches that email and password.",
+        "auth/user-not-found": "No Firebase Authentication user exists for that email.",
+        "auth/wrong-password": "The Firebase Authentication password is incorrect.",
+        "auth/operation-not-allowed": "Enable Email/Password sign-in in the Firebase Authentication console.",
+        "auth/too-many-requests": "Too many sign-in attempts. Please wait and try again.",
+      }
+      const message = messages[error.code] || error.message || "Login failed"
+      toast.error(message)
+      return { success: false, error: message }
     }
   }
 

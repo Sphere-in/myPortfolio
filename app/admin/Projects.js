@@ -3,7 +3,8 @@
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
-import { saveProject, updateProject, deleteProject, getProjects, uploadImage, ensureAuth } from "@/lib/firebase"
+import { getProjects } from "@/lib/firebase"
+import { adminFetch, uploadAdminImage } from "@/lib/admin-client"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -22,9 +23,8 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { Edit, Trash2, Save, Plus, Calendar, Github, Code, Eye, EyeOff, ChevronDown, ChevronUp, Users, Target, Award, Lightbulb, X } from 'lucide-react'
+import { Edit, Trash2, Save, Plus, Calendar, GitBranch, Code, Eye, EyeOff, ChevronDown, ChevronUp, Users, Target, Award, Lightbulb, X } from 'lucide-react'
 import { toast } from "sonner"
-import { getAuth } from "firebase/auth"
 export default function Projects() {
   const [projectData, setProjectData] = useState({
     title: "",
@@ -69,31 +69,12 @@ export default function Projects() {
   const [showAdvanced, setShowAdvanced] = useState(false)
   const [originalProjectData, setOriginalProjectData] = useState(null) // Store original data for cancel functionality
   const [isSlugManuallyEdited, setIsSlugManuallyEdited] = useState(false) // Track if slug was manually edited
-  const [token, setToken] = useState(null)
   const router = useRouter()
-  const auth = getAuth()
   useEffect(() => {
-    const initAuth = async () => {
-      try {
-        await ensureAuth()
-        fetchProjects()
-        const currentUser = auth.currentUser
-        if (!currentUser) {
-          throw new Error("You must be logged in")
-        }
-        setToken(currentUser.getIdToken())
-      } catch (error) {
-        console.error("Error initializing auth:", error)
-        setError("Failed to authenticate. Please try again.")
-        toast.error("Authentication failed. Please log in again.")
-      }
-    }
-    initAuth()
+    fetchProjects()
   }, [])
 
 
-
-  // const token = currentUser.getIdToken()
 
   // Auto-generate slug when title changes (only if slug hasn't been manually edited)
   useEffect(() => {
@@ -212,7 +193,7 @@ export default function Projects() {
     if (files.length > 0) {
       try {
         setUploadProgress(0)
-        const uploadPromises = files.map((file) => uploadImage(file))
+        const uploadPromises = files.map((file) => uploadAdminImage(file, "project-images"))
         const imageUrls = await Promise.all(uploadPromises)
 
         setProjectData((prevData) => ({
@@ -316,10 +297,10 @@ export default function Projects() {
 
       try {
         if (editingId) {
-          await updateProject(editingId, cleanedData)
+          await adminFetch(`/api/projects/${editingId}`, { method: "PATCH", body: JSON.stringify(cleanedData) })
           toast.success("Project updated successfully")
         } else {
-          await saveProject(cleanedData)
+          await adminFetch("/api/projects", { method: "POST", body: JSON.stringify(cleanedData) })
           toast.success("Project saved successfully")
         }
 
@@ -428,7 +409,7 @@ export default function Projects() {
 
   const handleDelete = async (id) => {
     try {
-      await deleteProject(id)
+      await adminFetch(`/api/projects/${id}`, { method: "DELETE" })
       toast.success("Project deleted successfully")
       fetchProjects()
       setDeleteDialogOpen(false)
@@ -474,8 +455,8 @@ export default function Projects() {
   }
 
   return (
-    <Tabs defaultValue="form" className="h-full ">
-      <TabsList className="mb-4">
+    <Tabs defaultValue="form" className="w-full space-y-4">
+      <TabsList className="grid w-full grid-cols-2 sm:w-auto">
         <TabsTrigger value="form" className="gap-2">
           {editingId ? <Edit className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
           {editingId ? "Edit Project" : "New Project"}
@@ -486,8 +467,8 @@ export default function Projects() {
         </TabsTrigger>
       </TabsList>
 
-      <TabsContent value="form" className="h-[calc(100%-40px)] ">
-        <Card>
+      <TabsContent value="form">
+        <Card className="rounded-2xl">
           <CardHeader>
             <CardTitle>{editingId ? "Edit Project" : "Add New Project"}</CardTitle>
             <CardDescription>
@@ -497,8 +478,8 @@ export default function Projects() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <ScrollArea className="h-[calc(100vh-270px)] ">
-              <form id="projectForm" onSubmit={handleSubmit} className="space-y-6 px-2">
+            <ScrollArea className="h-[min(68vh,56rem)] pr-2">
+              <form id="projectForm" onSubmit={handleSubmit} className="space-y-6 px-1 sm:px-2">
                 <div className="space-y-4">
                   <h3 className="text-lg font-medium">Basic Information</h3>
 
@@ -980,14 +961,14 @@ export default function Projects() {
         </Card>
       </TabsContent>
 
-      <TabsContent value="list" className="h-[calc(100%-40px)]">
-        <Card className="h-full">
+      <TabsContent value="list">
+        <Card className="rounded-2xl">
           <CardHeader>
             <CardTitle>Project List</CardTitle>
             <CardDescription>Manage your portfolio projects</CardDescription>
           </CardHeader>
           <CardContent>
-            <ScrollArea className="h-[calc(100vh-270px)]">
+            <ScrollArea className="h-[min(70vh,58rem)] pr-2">
               {projects.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground">
                   No projects found. Add your first project using the form.
@@ -1062,7 +1043,7 @@ export default function Projects() {
                           <p className="text-sm mt-2 line-clamp-2">{project.description}</p>
 
                           <div className="flex items-center mt-2">
-                            <Github className="h-4 w-4 mr-1" />
+                            <GitBranch className="h-4 w-4 mr-1" />
                             <a
                               href={project.githubLink}
                               target="_blank"
@@ -1123,7 +1104,7 @@ export default function Projects() {
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
               This action cannot be undone. This will permanently delete the project
-              {projectToDelete && <strong> "{projectToDelete.title}"</strong>} from your portfolio.
+              {projectToDelete && <strong> &ldquo;{projectToDelete.title}&rdquo;</strong>} from your portfolio.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

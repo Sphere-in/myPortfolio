@@ -27,9 +27,9 @@ const Start = () => {
   return (
     <div 
       ref={containerRef}
-      className='relative flex flex-col justify-center items-center p-4 text-center min-h-screen' >
+      className='relative flex min-h-[100svh] flex-col items-center justify-center overflow-hidden px-4 pb-16 pt-24 text-center sm:px-6' >
       <div 
-        className='absolute overflow-hidden text-7xl md:text-12xl lg:text-16xl xl:text-20xl 2xl:text-32xl font-extrabold z-0 top-6 h-screen'
+        className='absolute inset-0 z-0 overflow-hidden text-[clamp(4.25rem,19vw,18rem)] font-extrabold'
         style={{
           WebkitMaskImage: `radial-gradient(100px at ${mousePosition.x}px ${mousePosition.y}px, black, transparent)`,
           maskImage: `radial-gradient(100px at ${mousePosition.x}px ${mousePosition.y}px, black, transparent)`,
@@ -44,9 +44,9 @@ const Start = () => {
         <h1 className='text-gray-700 p-1'>DEVOPS</h1>
       </div>
 
-      <h1 className='z-10 flex flex-col sm:flex-row gap-x-8 justify-center text-7xl sm:text-8xl md:text-8xl lg:text-8xl xl:text-10xl  font-bold font-mono mb-4 tracking-tight cursor-default'>
+      <h1 className='z-10 flex max-w-full flex-col justify-center gap-x-6 font-mono text-[clamp(2.6rem,12vw,8rem)] font-bold leading-[0.9] tracking-[-0.07em] sm:flex-row sm:tracking-tight'>
         {[firstName, lastName].map((word, wordIndex) => (
-          <div key={wordIndex} className="flex">
+          <div key={wordIndex} className="flex justify-center">
             {word.split('').map((char, charIndex) => (
               <span
                 key={`${wordIndex}-${charIndex}`}
@@ -64,7 +64,7 @@ const Start = () => {
           </div>
         ))}
       </h1>
-      <p className='text-base sm:text-lg md:text-xl lg:text-2xl text-gray-400 tracking-wide select-none z-10'>
+      <p className='z-10 mt-6 select-none text-sm tracking-[0.2em] text-gray-400 sm:text-lg md:text-xl'>
         WEB DEVELOPER & DEVOPS
       </p>
     </div>

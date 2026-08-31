@@ -2,11 +2,11 @@
 
 import { Skeleton } from "@/components/ui/skeleton"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Button } from "@/components/ui/button"
 import { RefreshCw, Trash2, Send, Calendar, Mail, Building, FileText } from "lucide-react"
-import { getAuth } from "firebase/auth"
+import { auth } from "@/lib/firebase"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
@@ -23,6 +23,17 @@ import {
 } from "@/components/ui/alert-dialog"
 import { toast } from "sonner"
 
+function timestampValue(value) {
+  if (typeof value === "string" || typeof value === "number") return new Date(value).getTime()
+  if (value?._seconds) return value._seconds * 1000
+  if (value?.seconds) return value.seconds * 1000
+  return 0
+}
+
+function formatTimestamp(value) {
+  const milliseconds = timestampValue(value)
+  return milliseconds ? new Date(milliseconds).toLocaleString() : "Date unavailable"
+}
 
 
 export default function SubmissionsClient() {
@@ -33,10 +44,8 @@ export default function SubmissionsClient() {
   const [submissionToDelete, setSubmissionToDelete] = useState(null)
   const [reply, setReply] = useState("")
   const [isSending, setIsSending] = useState(false)
-  const auth = getAuth()
-
-  const fetchSubmissions = async () => {
-    setIsLoading(true)
+  const fetchSubmissions = useCallback(async ({ silent = false } = {}) => {
+    if (!silent) setIsLoading(true)
     try {
       const user = auth.currentUser
       if (!user) {
@@ -46,32 +55,42 @@ export default function SubmissionsClient() {
       const idToken = await user.getIdToken()
 
       const response = await fetch("/api/contact", {
+        cache: "no-store",
         headers: {
           Authorization: `Bearer ${idToken}`,
+          "Cache-Control": "no-cache",
         },
       })
 
       if (!response.ok) {
-        throw new Error("Failed to fetch submissions")
+        const result = await response.json().catch(() => ({}))
+        throw new Error(result.error || "Failed to fetch submissions")
       }
 
       const data = await response.json()
       setSubmissions(
         data.submissions.sort(
-          (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
+          (a, b) => timestampValue(b.timestamp) - timestampValue(a.timestamp),
         ),
       )
     } catch (error) {
       console.error("Error fetching submissions:", error)
-      toast.error("Failed to fetch submissions")
+      if (!silent) toast.error(error.message || "Failed to fetch submissions")
     } finally {
-      setIsLoading(false)
+      if (!silent) setIsLoading(false)
     }
-  }
+  }, [])
 
   useEffect(() => {
     fetchSubmissions()
-  }, [])
+    const refresh = () => fetchSubmissions({ silent: true })
+    const interval = window.setInterval(refresh, 15000)
+    window.addEventListener("focus", refresh)
+    return () => {
+      window.clearInterval(interval)
+      window.removeEventListener("focus", refresh)
+    }
+  }, [fetchSubmissions])
 
   const handleReload = () => {
     fetchSubmissions()
@@ -203,8 +222,8 @@ export default function SubmissionsClient() {
   }
 
   return (
-    <div className="flex flex-col md:flex-row h-full gap-6">
-      <Card className="md:w-1/3 h-full">
+    <div className="grid min-h-[70vh] gap-5 xl:grid-cols-[minmax(18rem,0.38fr)_minmax(0,0.62fr)]">
+      <Card className="min-w-0 rounded-2xl">
         <CardHeader className="pb-3">
           <div className="flex justify-between items-center">
             <CardTitle>Submissions</CardTitle>
@@ -213,10 +232,10 @@ export default function SubmissionsClient() {
               <span className="ml-2 hidden sm:inline">Reload</span>
             </Button>
           </div>
-          <CardDescription>Manage incoming contact form submissions</CardDescription>
+          <CardDescription>Manage incoming contact form submissions · refreshes automatically</CardDescription>
         </CardHeader>
-        <CardContent className="h-[calc(100%-120px)]">
-          <ScrollArea className="h-full pr-4">
+        <CardContent>
+          <ScrollArea className="h-[28rem] pr-3 xl:h-[calc(100vh-16rem)]">
             {isLoading ? (
               <div className="space-y-2">
                 {[1, 2, 3].map((i) => (
@@ -244,7 +263,7 @@ export default function SubmissionsClient() {
                           <h3 className={`font-medium ${!sub.read ? "font-semibold" : ""}`}>{sub.name}</h3>
                           <p className="text-sm text-muted-foreground">{sub.email}</p>
                           <p className="text-xs text-muted-foreground mt-1">
-                            {new Date(sub.timestamp).toLocaleString()}
+                            {formatTimestamp(sub.timestamp)}
                           </p>
                         </div>
                         <Button
@@ -269,16 +288,16 @@ export default function SubmissionsClient() {
         </CardContent>
       </Card>
 
-      <div className="flex-1">
+      <div className="min-w-0">
         {!selectedSubmission ? (
-          <div className="flex items-center justify-center h-full">
+          <div className="grid min-h-56 place-items-center rounded-2xl border border-dashed bg-card xl:min-h-full">
             <div className="text-center text-muted-foreground">
               <FileText className="h-12 w-12 mx-auto mb-4 opacity-20" />
               <p>Select a submission to view details</p>
             </div>
           </div>
         ) : (
-          <Card className="h-full">
+          <Card className="h-full rounded-2xl">
             <CardHeader>
               <div className="flex items-start gap-4">
                 <Avatar className="h-12 w-12 border">
@@ -300,7 +319,7 @@ export default function SubmissionsClient() {
                     )}
                     <div className="flex items-center text-xs text-muted-foreground">
                       <Calendar className="h-3.5 w-3.5 mr-1" />
-                      {new Date(selectedSubmission.timestamp).toLocaleString()}
+                      {formatTimestamp(selectedSubmission.timestamp)}
                     </div>
                   </div>
                 </div>
@@ -316,14 +335,14 @@ export default function SubmissionsClient() {
             </CardContent>
             <CardFooter className="flex flex-col">
               <Separator className="mb-4" />
-              <div className="flex items-center space-x-2 w-full">
+              <div className="flex w-full flex-col gap-2 sm:flex-row">
                 <Input
                   value={reply}
                   onChange={(e) => setReply(e.target.value)}
                   placeholder="Type your reply..."
                   className="flex-1"
                 />
-                <Button onClick={handleReply} disabled={isSending || !reply.trim()}>
+                <Button onClick={handleReply} disabled={isSending || !reply.trim()} className="shrink-0">
                   {isSending ? <RefreshCw className="h-4 w-4 mr-2 animate-spin" /> : <Send className="h-4 w-4 mr-2" />}
                   {isSending ? "Sending..." : "Send"}
                 </Button>

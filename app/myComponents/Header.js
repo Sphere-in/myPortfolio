@@ -1,165 +1,131 @@
-'use client';
+"use client"
 
-import { useState, useEffect, useMemo } from 'react';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import dynamic from 'next/dynamic';
+import { useEffect, useState } from "react"
+import Link from "next/link"
+import { Menu, X } from "lucide-react"
 
-const MenuIcon = dynamic(() => import('lucide-react').then((mod) => mod.Menu), {
-  loading: () => <div className="w-6 h-6 bg-gray-300 animate-pulse rounded" />,
-  ssr: false
-});
-const XIcon = dynamic(() => import('lucide-react').then((mod) => mod.X), {
-  loading: () => <div className="w-6 h-6 bg-gray-300 animate-pulse rounded" />,
-  ssr: false
-});
+const navItems = [
+  { href: "#home", label: "// Home" },
+  { href: "#about", label: "// About me" },
+  { href: "#projects", label: "// Projects" },
+  { href: "#contact", label: "// Contact me" },
+]
 
-const NavItem = ({ href, label, isActive, onClick }) => (
-  <li className="relative w-auto">
-    <Link
-      href={href}
-      onClick={onClick}
-      className={`
-        hover:text-teal-300 transition-colors duration-300
-        group-hover:opacity-50 hover:!opacity-100
-        ${isActive ? 'text-teal-300' : 'text-white'}
-      `}
-    >
-      {label}
-    </Link>
-    {isActive && (
-      <span className="absolute -bottom-1 left-0 w-full h-0.5 bg-teal-300" />
-    )}
-  </li>
-);
+function NavItem({ href, label, active, onClick }) {
+  return (
+    <li className="relative w-auto">
+      <Link
+        href={href}
+        onClick={onClick}
+        className={`transition-colors duration-300 group-hover:opacity-50 hover:!text-teal-300 hover:!opacity-100 ${active ? "text-teal-300" : "text-white"}`}
+      >
+        {label}
+      </Link>
+      {active && <span className="absolute -bottom-1 left-0 h-0.5 w-full bg-teal-300" />}
+    </li>
+  )
+}
 
 export default function Header() {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isVisible, setIsVisible] = useState(true);
-  const [activeSection, setActiveSection] = useState('');
-  const [isScrolling, setIsScrolling] = useState(false); // Added state variable
-  const pathname = usePathname();
-
-  const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
-
-  const navItems = useMemo(() => [
-    { href: '#home', label: '// Home' },
-    { href: '#about', label: '// About me' },
-    { href: '#projects', label: '// Projects' },
-    { href: '#contact', label: '// Contact me' },
-  ], []);
+  const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [isVisible, setIsVisible] = useState(true)
+  const [activeSection, setActiveSection] = useState("home")
+  const [isScrolling, setIsScrolling] = useState(false)
 
   useEffect(() => {
-    let lastScrollY = window.scrollY;
-    let ticking = false;
-    let scrollTimer = null;
+    let lastScrollY = window.scrollY
+    let animationFrame = null
+    let scrollTimer = null
 
-    const updateActiveSection = () => {
-      const sections = ['home', 'about', 'projects', 'contact'];
-      let currentSection = '';
-
-      for (const section of sections) {
-        const element = document.getElementById(section);
-        if (element) {
-          const rect = element.getBoundingClientRect();
-          if (rect.top <= 100 && rect.bottom >= 100) {
-            currentSection = section;
-            break;
-          }
-        }
-      }
-
-      setActiveSection(currentSection);
-    };
-
-    const handleScroll = () => {
-      const currentScrollY = window.pageYOffset;
-
-      if (!ticking) {
-        window.requestAnimationFrame(() => {
-          setIsScrolling(true);
-          setIsVisible(currentScrollY < lastScrollY || currentScrollY < 100);
-          updateActiveSection();
-          lastScrollY = currentScrollY;
-          ticking = false;
-        });
-
-        ticking = true;
-      }
-
-      // Clear the existing timer
-      if (scrollTimer !== null) {
-        clearTimeout(scrollTimer);
-      }
-
-      // Set a new timer
-      scrollTimer = setTimeout(() => {
-        setIsScrolling(false);
-        setIsVisible(true);
-      }, 150); // Adjust this value to change how quickly the header appears after scrolling stops
-    };
-
-    window.addEventListener('scroll', handleScroll, { passive: true });
-
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-      if (scrollTimer !== null) {
-        clearTimeout(scrollTimer);
-      }
-    };
-  }, []);
-
-  const handleNavClick = (e, href) => {
-    e.preventDefault();
-    const targetId = href.replace('#', '');
-    const element = document.getElementById(targetId);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
+    function updateActiveSection() {
+      const current = navItems.find(({ href }) => {
+        const element = document.getElementById(href.slice(1))
+        if (!element) return false
+        const rect = element.getBoundingClientRect()
+        return rect.top <= 110 && rect.bottom >= 110
+      })
+      if (current) setActiveSection(current.href.slice(1))
     }
-    setIsMenuOpen(false);
-  };
+
+    function handleScroll() {
+      const currentScrollY = window.scrollY
+      if (animationFrame === null) {
+        animationFrame = window.requestAnimationFrame(() => {
+          setIsScrolling(true)
+          setIsVisible(currentScrollY < lastScrollY || currentScrollY < 100)
+          updateActiveSection()
+          lastScrollY = currentScrollY
+          animationFrame = null
+        })
+      }
+      window.clearTimeout(scrollTimer)
+      scrollTimer = window.setTimeout(() => {
+        setIsScrolling(false)
+        setIsVisible(true)
+      }, 150)
+    }
+
+    updateActiveSection()
+    window.addEventListener("scroll", handleScroll, { passive: true })
+    return () => {
+      window.removeEventListener("scroll", handleScroll)
+      if (animationFrame !== null) window.cancelAnimationFrame(animationFrame)
+      window.clearTimeout(scrollTimer)
+    }
+  }, [])
+
+  useEffect(() => {
+    function closeOnEscape(event) {
+      if (event.key === "Escape") setIsMenuOpen(false)
+    }
+    window.addEventListener("keydown", closeOnEscape)
+    return () => window.removeEventListener("keydown", closeOnEscape)
+  }, [])
+
+  function handleNavClick(event, href) {
+    event.preventDefault()
+    document.getElementById(href.slice(1))?.scrollIntoView({ behavior: "smooth" })
+    setIsMenuOpen(false)
+  }
 
   return (
-    <header className={`fixed top-0 left-0 right-0 z-50 transition-transform duration-300 ${isVisible || !isScrolling ? 'translate-y-0' : '-translate-y-full'}`}>
-      <div className="md:bg-black/80 backdrop-blur-sm px-4 md:bg-opacity-85 md:px-4 md:pt-2  ">
-        <div className="w-full flex items-center justify-between mb-4 md:mb-6">
-
-          {/* LOGO  */}
-          <div className="font-mono text-2xl md:text-4xl font-bold z-20 font-robo ">
-            <p className="text-teal-300 inline-block">RAIHAN</p>._
-          </div>
+    <header className={`fixed inset-x-0 top-0 z-50 text-white transition-transform duration-300 ${isVisible || !isScrolling ? "translate-y-0" : "-translate-y-full"}`}>
+      <div className="relative px-4 backdrop-blur-sm md:bg-black/80 md:px-4 md:pt-2">
+        <div className="mb-4 flex w-full items-center justify-between md:mb-6">
+          <Link href="#home" onClick={(event) => handleNavClick(event, "#home")} className="z-20 font-mono text-2xl font-bold md:text-4xl">
+            <span className="inline-block text-teal-300">RAIHAN</span>._
+          </Link>
 
           <button
-            className="md:hidden z-20"
-            onClick={toggleMenu}
-            aria-label="Toggle menu"
+            type="button"
+            className="z-20 grid h-10 w-10 place-items-center md:hidden"
+            onClick={() => setIsMenuOpen((open) => !open)}
+            aria-label={isMenuOpen ? "Close menu" : "Open menu"}
+            aria-expanded={isMenuOpen}
+            aria-controls="portfolio-navigation"
           >
-            {isMenuOpen ? <XIcon className="h-6 w-6 text-white" /> : <MenuIcon className="h-6 w-6 text-white" />}
+            {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
           </button>
         </div>
 
         <nav
-          className={`
-            ${isMenuOpen ? 'flex' : 'hidden'}
-            md:flex flex-col md:flex-row absolute md:relative top-full left-0 w-full md:w-auto md:py-0 py-56
-            items-start justify-center space-y-1 md:space-y-0 pl-6 text-xl md:text-1xl font-medium z-10
-            bg-black/80 backdrop-blur-sm md:bg-transparent
-          `}
+          id="portfolio-navigation"
+          aria-label="Portfolio navigation"
+          className={`${isMenuOpen ? "flex" : "hidden"} absolute left-0 top-full z-10 min-h-[calc(100svh-4rem)] w-full flex-col items-start justify-start bg-black/90 px-6 pt-20 text-xl font-medium backdrop-blur-sm md:left-1/2 md:top-1/2 md:flex md:min-h-0 md:w-auto md:-translate-x-1/2 md:-translate-y-1/2 md:flex-row md:justify-center md:bg-transparent md:px-0 md:pt-0 md:text-sm lg:text-xl`}
         >
-          <ul className="flex flex-col md:flex-row items-start  gap-4 md:gap-10 font-roboto group desktop-spacing md:pt-5">
+          <ul className="group flex flex-col items-start gap-4 font-mono md:flex-row md:items-center md:gap-5 lg:gap-10">
             {navItems.map((item) => (
               <NavItem
                 key={item.href}
                 href={item.href}
                 label={item.label}
-                isActive={activeSection === item.href.replace('#', '')}
-                onClick={(e) => handleNavClick(e, item.href)}
+                active={activeSection === item.href.slice(1)}
+                onClick={(event) => handleNavClick(event, item.href)}
               />
             ))}
           </ul>
         </nav>
       </div>
     </header>
-  );
+  )
 }
-

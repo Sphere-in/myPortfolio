@@ -50,7 +50,7 @@ export default function ProjectsPage() {
 
   return (
     <div className="min-h-screen bg-black text-white">
-      <div className="max-w-7xl mx-auto px-4 py-16 space-y-32">
+      <div className="mx-auto max-w-7xl space-y-20 px-4 py-20 sm:px-6 sm:py-24 lg:space-y-28 lg:px-8">
         {projects
         .filter((project) => project.display !== false)
         .map((project, index) => (
@@ -59,9 +59,9 @@ export default function ProjectsPage() {
             key={project.id}
             className={`flex flex-col ${
               index % 2 === 0 ? "md:flex-row-reverse" : "md:flex-row"
-            } gap-8 md:gap-16 items-center`}
+            } items-center gap-7 md:gap-12 lg:gap-16`}
           >
-            <div className="w-full md:w-1/2 relative aspect-video">
+            <div className="relative aspect-video w-full overflow-hidden rounded-2xl bg-neutral-900 md:w-1/2">
             <Link
             href={`/Projects/${project.slug}?return=${encodeURIComponent('/#projects')}`}>
               {/* {console.log(project)} */}
@@ -75,7 +75,7 @@ export default function ProjectsPage() {
                   alt={project.title}
                   fill
                   sizes="(max-width: 768px) 100vw, 50vw"
-                  className="rounded-lg object-cover"
+                  className="object-cover transition-transform duration-500 hover:scale-105"
                 />
 
 
@@ -93,7 +93,7 @@ export default function ProjectsPage() {
                 ))}
               </div>
               <p className="text-neutral-400 leading-relaxed">{project.description}</p>
-              <div className="flex items-center gap-6 pt-4">
+              <div className="flex flex-wrap items-center gap-6 pt-4">
                 <Link
                   href={project.githubLink}
                   className="flex items-center gap-2 text-sm hover:text-neutral-400 transition-colors"

@@ -1,89 +1,59 @@
+"use client"
+
+import { useEffect, useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Linkedin, Instagram, Globe, Github } from 'lucide-react'
-import ImageSlider from "./image-slider"
+import { AtSign, GitBranch, Globe, Link2 } from "lucide-react"
+import { getAboutContent } from "@/lib/firebase"
+import { DEFAULT_ABOUT_CONTENT } from "@/data/about-defaults"
 import EducationField from "./EducationField"
+import ImageSlider from "./image-slider"
 import Skills from "./Skills"
 
-export default function Component() {
+export default function AboutSection() {
+  const [content, setContent] = useState(DEFAULT_ABOUT_CONTENT)
+
+  useEffect(() => {
+    getAboutContent().then(setContent).catch((error) => console.error("Unable to load About content:", error))
+  }, [])
+
   return (
-    <div className="min-h-screen  bg-slate-950  text-white p-6 md:p-12 relative">
-      <div className="max-w-6xl mx-auto pt-16">
-
-        <div className="grid lg:grid-cols-2 gap-8 lg:gap-16 items-start relative">
-          
-          {/* Social Icons Column */}
-          <div className="space-y-6">
-            <div className="space-y-2">
-              <div className="flex items-baseline gap-2">
-                <h1 className="text-4xl md:text-5xl font-bold">Hi, I&apos;m <span className="text-emerald-300">Mohammad Raihan</span></h1>
-              </div>
-              <h2 className="text-xl md:text-2xl text-emerald-500">Web Developer</h2>
-            </div>
-
-            {/* Scrollable introduction text */}
-            <div className="max-h-[300px] overflow-y-auto pr-4 scrollbar-thin scrollbar-thumb-emerald-500 scrollbar-track-gray-800">
-              <p className="text-gray-400">
-                A versatile and passionate developer with expertise in modern web technologies, cloud solutions, automation, and programming. With a strong foundation in software development and problem-solving, I thrive on creating efficient and scalable solutions for complex challenges.
-                <br /><br />
-                I specialize in Next.js (React, HTML, CSS), crafting responsive and interactive web applications. My experience extends to cloud platforms like AWS, where I design and manage robust infrastructures. I'm also proficient in databases (both SQL and NoSQL), ensuring optimized data storage and retrieval for applications.
-                <br /><br />
-                In addition to web development, I have hands-on expertise in automation tools like Jenkins and Ansible, as well as shell scripting, enabling seamless CI/CD pipelines and server management. I'm adept in programming with Python, C, and C++, further diversifying my ability to tackle various technical challenges.
-                <br /><br />
-                Whether it's developing feature-rich applications, automating workflows, or deploying scalable systems, I am driven by a commitment to deliver excellence in every project I undertake. Let's create something amazing together!
-              </p>
-            </div>
-
-            {/* Social Links */}
-            <div className="flex gap-4">
-              <Link href="https://www.linkedin.com/in/raihan-shk" className="text-gray-400 hover:text-white transition-colors">
-                <Linkedin className="w-6 h-6" />
-              </Link>
-              <Link href="#" className="text-gray-400 hover:text-white transition-colors">
-                <Instagram className="w-6 h-6" />
-              </Link>
-              <Link href="https://raihan-shk.vercel.app" className="text-gray-400 hover:text-white transition-colors">
-                <Globe className="w-6 h-6" />
-              </Link>
-              <Link href="https://github.com/Sphere-in" className="text-gray-400 hover:text-white transition-colors">
-                <Github className="w-6 h-6" />
-              </Link>
-            </div>
-
-            {/* Download CV Button */}
-            {/* <Button className="bg-emerald-500 hover:bg-emerald-600 text-white rounded-full px-6 select-none">
-              Download CV
-            </Button> */}
-          </div>
-
-          {/* Image Column */}
-          <div className=" hidden lg:block ">
-            {/* Decorative Circles */}
-            {/* <div className="absolute right-0 top-0 w-48 h-48  rounded-full opacity-20 blur-3xl" />
-            <div className="absolute right-20 top-20 w-48 h-48 bg-blue-500 rounded-full opacity-20 blur-3xl" /> */}
-
-            {/* Profile Image */}
-            <div className="relative z-10 max-w-md mx-auto hidden md:block ">
-              <div className="aspect-square relative overflow-hidden rounded-2xl">
-                <Image
-                  src="/me.png"
-                  alt="Profile picture"
-                  fill
-                  className="object-cover object-center"
-                  sizes="(max-width: 768px) 100vw, 50vw"
-                  priority
-                />
-              </div>
+    <div className="relative min-h-screen overflow-hidden bg-slate-950 px-4 py-20 text-white sm:px-6 sm:py-24 lg:px-8">
+      <div className="pointer-events-none absolute left-1/2 top-0 h-96 w-96 -translate-x-1/2 rounded-full bg-emerald-400/10 blur-3xl" />
+      <div className="relative mx-auto max-w-6xl">
+        <div className={`grid items-center gap-10 ${content.imageVisible && content.imageUrl ? "lg:grid-cols-[minmax(0,1.15fr)_minmax(20rem,0.85fr)] lg:gap-16" : ""}`}>
+          <div className="min-w-0">
+            <p className="mb-4 text-sm font-semibold uppercase tracking-[0.24em] text-emerald-300">{content.eyebrow}</p>
+            <h2 className="text-balance text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">Hi, I&apos;m <span className="text-emerald-300">{content.name}</span></h2>
+            <p className="mt-4 text-lg font-medium text-emerald-400 sm:text-xl">{content.role}</p>
+            <div className="mt-7 max-w-3xl whitespace-pre-line text-base leading-8 text-slate-300 sm:text-lg">{content.description}</div>
+            <div className="mt-8 flex flex-wrap gap-3">
+              {[
+                ["LinkedIn", "https://www.linkedin.com/in/raihan-shk", Link2],
+                ["Instagram", "#", AtSign],
+                ["Website", "https://raihan-shk.vercel.app", Globe],
+                ["GitHub", "https://github.com/Sphere-in", GitBranch],
+              ].map(([label, href, Icon]) => (
+                <Link key={label} href={href} target={href.startsWith("http") ? "_blank" : undefined} rel={href.startsWith("http") ? "noopener noreferrer" : undefined} aria-label={label} className="grid h-11 w-11 place-items-center rounded-full border border-white/10 bg-white/5 text-slate-300 transition hover:-translate-y-0.5 hover:border-emerald-300/40 hover:bg-emerald-300/10 hover:text-emerald-200">
+                  <Icon className="h-5 w-5" />
+                </Link>
+              ))}
             </div>
           </div>
+
+          {content.imageVisible && content.imageUrl && (
+            <div className="relative mx-auto w-full max-w-md">
+              <div className="absolute -inset-4 rounded-[2rem] bg-gradient-to-br from-emerald-400/20 to-cyan-400/5 blur-2xl" />
+              <div className="relative aspect-[4/5] overflow-hidden rounded-[2rem] border border-white/10 bg-slate-900 shadow-2xl sm:aspect-square lg:aspect-[4/5]">
+                <Image src={content.imageUrl} alt={content.imageAlt || content.name} fill sizes="(max-width: 1024px) 90vw, 420px" className="object-cover" priority />
+              </div>
+            </div>
+          )}
         </div>
       </div>
-
-      <ImageSlider />
+      <div className="relative mx-auto mt-16 max-w-7xl sm:mt-20"><ImageSlider /></div>
       <EducationField />
-      <Skills/>
+      <Skills />
     </div>
   )
 }
-
